@@ -1,0 +1,11 @@
+﻿venv/
+__pycache__/
+uploads/
+logs/
+*.h5
+*.onnx
+*.npy
+model/plant_disease_model.h5
+model/best_phase1.h5
+model/model.onnx
+dataset/
