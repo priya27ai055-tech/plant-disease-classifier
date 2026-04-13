@@ -99,6 +99,7 @@ python app.py
 - ✅ Prevention tips
 - ✅ Top-3 prediction alternatives
 - ✅ Beautiful responsive UI
+- ✅ Before/After Tracker 
 
 ---
 
