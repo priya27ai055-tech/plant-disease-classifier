@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>History — PlantHealth AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{--g900:#0d2b1a;--g800:#1a3d2b;--g700:#1f5c38;--g600:#2d7a4f;--g500:#3a9e68;--g400:#52b788;--g300:#74c69d;--g100:#d8f3dc;--g50:#f0faf3;--cream:#fafaf7;--white:#ffffff;--td:#0d1f16;--tm:#2d4a38;--tl:#5a7a65;--sh:0 8px 24px rgba(13,43,26,0.12);--r:16px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans','Noto Sans Devanagari',sans-serif;background:var(--cream);color:var(--td);min-height:100vh;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,0.93);backdrop-filter:blur(16px);border-bottom:1px solid rgba(82,183,136,0.15);padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{display:flex;align-items:center;gap:10px;font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--g700);text-decoration:none;}
+.nav-logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--g500),var(--g700));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.nav-links{display:flex;gap:8px;list-style:none;}
+.nav-links a{text-decoration:none;color:var(--tl);font-size:0.9rem;font-weight:500;padding:8px 16px;border-radius:50px;transition:all 0.2s;}
+.nav-links a.active{background:var(--g100);color:var(--g700);font-weight:600;}
+.lang-toggle{display:flex;background:var(--g50);border:1px solid var(--g100);border-radius:50px;padding:3px;}
+.lang-btn{background:none;border:none;font-family:inherit;font-size:0.8rem;font-weight:600;color:var(--tl);padding:5px 12px;border-radius:50px;cursor:pointer;transition:all 0.2s;}
+.lang-btn.active{background:var(--g600);color:var(--white);}
+.page{padding:100px 40px 60px;max-width:760px;margin:0 auto;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;}
+.page-title{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--td);}
+.clear-btn{background:none;border:2px solid #fca5a5;color:#dc2626;border-radius:50px;padding:8px 18px;font-family:inherit;font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.clear-btn:hover{background:#fef2f2;}
+.history-item{background:var(--white);border-radius:var(--r);border:1px solid var(--g100);padding:20px 24px;margin-bottom:16px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:all 0.2s;text-decoration:none;}
+.history-item:hover{border-color:var(--g300);box-shadow:var(--sh);transform:translateX(4px);}
+.history-plant{font-size:2rem;flex-shrink:0;}
+.history-info{flex:1;}
+.history-disease{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--td);margin-bottom:4px;}
+.history-meta{font-size:0.78rem;color:var(--tl);}
+.history-badge{padding:4px 12px;border-radius:50px;font-size:0.75rem;font-weight:700;flex-shrink:0;}
+.history-arrow{color:var(--tl);font-size:1.2rem;}
+.empty-state{text-align:center;padding:80px 20px;}
+.empty-icon{font-size:4rem;margin-bottom:16px;}
+.empty-title{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--td);margin-bottom:8px;}
+.empty-sub{color:var(--tl);margin-bottom:24px;}
+.btn-start{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--g500),var(--g700));color:var(--white);border:none;border-radius:50px;padding:12px 24px;font-family:inherit;font-size:0.95rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all 0.3s;}
+.btn-start:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(45,122,79,0.4);}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo"><div class="nav-logo-icon">🌿</div>PlantHealth AI</a>
+  <ul class="nav-links">
+    <li><a href="index.html" data-en="Home" data-hi="होम">Home</a></li>
+    <li><a href="select.html" data-en="Diagnose" data-hi="निदान">Diagnose</a></li>
+    <li><a href="history.html" class="active" data-en="History" data-hi="इतिहास">History</a></li>
+    <li><a href="about.html" data-en="About" data-hi="हमारे बारे में">About</a></li>
+  </ul>
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" id="btn-hi" onclick="setLang('hi')">हिं</button>
+  </div>
+</nav>
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title" data-en="Scan History 📋" data-hi="स्कैन इतिहास 📋">Scan History 📋</h1>
+    <button class="clear-btn" onclick="clearHistory()" data-en="Clear History" data-hi="इतिहास साफ़ करें">Clear History</button>
+  </div>
+  <div id="history-container"></div>
+</div>
+<script>
+function loadHistory(){
+  const history=JSON.parse(localStorage.getItem('plantHistory')||'[]');
+  const container=document.getElementById('history-container');
+  if(history.length===0){
+    container.innerHTML='<div class="empty-state"><div class="empty-icon">🌱</div><div class="empty-title">No scans yet</div><div class="empty-sub">Your diagnosis history will appear here</div><a href="select.html" class="btn-start">🔬 Start Diagnosis</a></div>';
+    return;
+  }
+  const plantEmoji={potato:'🥔',tomato:'🍅',pepper:'🌶',unknown:'🌿'};
+  container.innerHTML=history.map((h,i)=>{
+    const date=new Date(h.date);
+    const dateStr=date.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+' · '+date.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="history-item">
+      <div class="history-plant">${plantEmoji[h.plant]||'🌿'}</div>
+      <div class="history-info">
+        <div class="history-disease">${h.disease}</div>
+        <div class="history-meta">📅 ${dateStr} · ${h.confidence.toFixed(1)}% confidence</div>
+      </div>
+      <span class="history-badge" style="background:${h.color}22;color:${h.color};border:1px solid ${h.color}44;">${h.severity}</span>
+      <div class="history-arrow">›</div>
+    </div>`;
+  }).join('');
+}
+function clearHistory(){
+  if(confirm('Clear all history?')){localStorage.removeItem('plantHistory');loadHistory();}
+}
+function setLang(lang){
+  document.getElementById('btn-en').classList.toggle('active',lang==='en');
+  document.getElementById('btn-hi').classList.toggle('active',lang==='hi');
+  document.querySelectorAll('[data-en]').forEach(el=>{
+    el.textContent=el.getAttribute('data-'+lang)||el.getAttribute('data-en');
+  });
+}
+loadHistory();
+</script>
+</body>
+</html>

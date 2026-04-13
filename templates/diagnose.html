@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Diagnose — PlantHealth AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{--g900:#0d2b1a;--g800:#1a3d2b;--g700:#1f5c38;--g600:#2d7a4f;--g500:#3a9e68;--g400:#52b788;--g300:#74c69d;--g100:#d8f3dc;--g50:#f0faf3;--cream:#fafaf7;--white:#ffffff;--td:#0d1f16;--tm:#2d4a38;--tl:#5a7a65;--sh:0 8px 24px rgba(13,43,26,0.12);--r:16px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans','Noto Sans Devanagari',sans-serif;background:var(--cream);color:var(--td);}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,0.93);backdrop-filter:blur(16px);border-bottom:1px solid rgba(82,183,136,0.15);padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{display:flex;align-items:center;gap:10px;font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--g700);text-decoration:none;}
+.nav-logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--g500),var(--g700));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.nav-links{display:flex;gap:8px;list-style:none;}
+.nav-links a{text-decoration:none;color:var(--tl);font-size:0.9rem;font-weight:500;padding:8px 16px;border-radius:50px;transition:all 0.2s;}
+.nav-links a.active{background:var(--g100);color:var(--g700);font-weight:600;}
+.lang-toggle{display:flex;background:var(--g50);border:1px solid var(--g100);border-radius:50px;padding:3px;}
+.lang-btn{background:none;border:none;font-family:inherit;font-size:0.8rem;font-weight:600;color:var(--tl);padding:5px 12px;border-radius:50px;cursor:pointer;transition:all 0.2s;}
+.lang-btn.active{background:var(--g600);color:var(--white);}
+.page{padding:100px 40px 60px;max-width:760px;margin:0 auto;}
+.back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--tl);text-decoration:none;font-size:0.9rem;font-weight:500;margin-bottom:24px;transition:color 0.2s;}
+.back-btn:hover{color:var(--g600);}
+.card{background:var(--white);border-radius:var(--r);box-shadow:var(--sh);border:1px solid rgba(82,183,136,0.12);overflow:hidden;margin-bottom:24px;}
+.card-header{padding:20px 28px;border-bottom:1px solid var(--g50);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--td);display:flex;align-items:center;gap:10px;}
+.card-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--g400),var(--g600));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;}
+.plant-badge{background:var(--g50);border:1px solid var(--g100);border-radius:50px;padding:4px 14px;font-size:0.8rem;font-weight:600;color:var(--g700);}
+.card-body{padding:28px;}
+.dropzone{border:2px dashed var(--g300);border-radius:12px;padding:48px 24px;text-align:center;cursor:pointer;transition:all 0.3s;background:var(--g50);position:relative;}
+.dropzone:hover,.dropzone.drag-over{border-color:var(--g500);background:rgba(82,183,136,0.08);}
+.dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.dz-icon{font-size:2.5rem;margin-bottom:12px;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+.dz-title{font-size:1rem;font-weight:600;color:var(--g600);margin-bottom:6px;}
+.dz-sub{font-size:0.82rem;color:var(--tl);}
+#preview-area{display:none;margin-top:16px;border-radius:12px;overflow:hidden;border:2px solid var(--g100);position:relative;}
+#preview-img{width:100%;max-height:280px;object-fit:contain;background:var(--g50);display:block;}
+.preview-remove{position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
+.preview-remove:hover{background:rgba(220,38,38,0.8);}
+.tip-box{background:var(--g50);border:1px solid var(--g100);border-radius:10px;padding:12px 16px;margin-top:16px;font-size:0.82rem;color:var(--tm);display:flex;align-items:center;gap:8px;}
+.error-box{background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:14px 18px;color:#dc2626;font-size:0.88rem;display:none;margin-top:12px;}
+.btn-analyze{width:100%;background:linear-gradient(135deg,var(--g500),var(--g700));color:var(--white);border:none;border-radius:50px;padding:16px;font-family:inherit;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;margin-top:20px;display:flex;align-items:center;justify-content:center;gap:10px;}
+.btn-analyze:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(45,122,79,0.4);}
+.btn-analyze:disabled{opacity:0.5;cursor:not-allowed;}
+.spinner{width:18px;height:18px;border:3px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:none;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Processing overlay */
+#processing-overlay{display:none;position:fixed;inset:0;background:rgba(13,43,26,0.85);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:24px;}
+#processing-overlay.show{display:flex;}
+.proc-spinner{width:64px;height:64px;border:5px solid rgba(255,255,255,0.2);border-top-color:var(--g400);border-radius:50%;animation:spin 1s linear infinite;}
+.proc-title{color:var(--white);font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;}
+.proc-steps{display:flex;flex-direction:column;gap:8px;align-items:center;}
+.proc-step{color:rgba(255,255,255,0.7);font-size:0.88rem;display:flex;align-items:center;gap:8px;opacity:0;transition:opacity 0.5s;}
+.proc-step.show{opacity:1;}
+.proc-dot{width:6px;height:6px;background:var(--g400);border-radius:50%;}
+
+/* Results */
+#result-section{display:none;}
+.severity-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:50px;font-size:0.8rem;font-weight:700;letter-spacing:0.04em;}
+.confidence-wrap{margin:16px 0;}
+.conf-label{display:flex;justify-content:space-between;font-size:0.82rem;color:var(--tl);margin-bottom:6px;}
+.conf-bg{background:var(--g50);border-radius:50px;height:10px;overflow:hidden;}
+.conf-bar{height:100%;border-radius:50px;background:linear-gradient(90deg,var(--g400),var(--g600));transition:width 1.2s cubic-bezier(0.22,1,0.36,1);width:0;}
+.treatment-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:12px;}
+.treatment-item{display:flex;gap:12px;padding:12px 16px;background:var(--g50);border-left:3px solid var(--g400);border-radius:0 8px 8px 0;font-size:0.88rem;line-height:1.5;animation:slideIn 0.4s ease forwards;opacity:0;}
+@keyframes slideIn{from{opacity:0;transform:translateX(-10px);}to{opacity:1;transform:translateX(0);}}
+.t-num{flex-shrink:0;width:22px;height:22px;background:var(--g600);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;}
+.prev-box{background:linear-gradient(135deg,#fffbeb,#fef9ee);border:1px solid #fcd34d;border-radius:10px;padding:14px 18px;margin-top:12px;font-size:0.88rem;color:#92400e;line-height:1.6;}
+.alt-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px;}
+.alt-item{background:var(--g50);border-radius:10px;padding:12px 16px;}
+.alt-name{font-weight:600;color:var(--td);font-size:0.85rem;margin-bottom:2px;}
+.alt-conf{color:var(--tl);font-size:0.78rem;}
+.new-analysis-btn{display:inline-flex;align-items:center;gap:8px;background:var(--g50);border:2px solid var(--g300);color:var(--g700);border-radius:50px;padding:10px 20px;font-family:inherit;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;text-decoration:none;}
+.new-analysis-btn:hover{background:var(--g100);}
+.desc-box{background:var(--g50);border-radius:10px;padding:16px;font-size:0.88rem;color:var(--tm);line-height:1.7;margin-top:12px;}
+</style>
+</head>
+<body>
+
+<!-- Processing Overlay -->
+<div id="processing-overlay">
+  <div class="proc-spinner"></div>
+  <div class="proc-title" data-en="Analyzing Your Plant..." data-hi="आपके पौधे का विश्लेषण...">Analyzing Your Plant...</div>
+  <div class="proc-steps">
+    <div class="proc-step" id="s1"><div class="proc-dot"></div><span data-en="Detecting plant features..." data-hi="पौधे की विशेषताएं पहचान रहे हैं...">Detecting plant features...</span></div>
+    <div class="proc-step" id="s2"><div class="proc-dot"></div><span data-en="Identifying disease patterns..." data-hi="रोग पैटर्न पहचान रहे हैं...">Identifying disease patterns...</span></div>
+    <div class="proc-step" id="s3"><div class="proc-dot"></div><span data-en="Generating results..." data-hi="परिणाम तैयार कर रहे हैं...">Generating results...</span></div>
+  </div>
+</div>
+
+<nav>
+  <a href="index.html" class="nav-logo"><div class="nav-logo-icon">🌿</div>PlantHealth AI</a>
+  <ul class="nav-links">
+    <li><a href="index.html" data-en="Home" data-hi="होम">Home</a></li>
+    <li><a href="select.html" class="active" data-en="Diagnose" data-hi="निदान">Diagnose</a></li>
+    <li><a href="about.html" data-en="About" data-hi="हमारे बारे में">About</a></li>
+  </ul>
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" id="btn-hi" onclick="setLang('hi')">हिं</button>
+  </div>
+</nav>
+
+<div class="page">
+  <a href="select.html" class="back-btn">← <span data-en="Back" data-hi="वापस">Back</span></a>
+
+  <!-- Upload Card -->
+  <div class="card" id="upload-card">
+    <div class="card-header">
+      <div class="card-title"><div class="card-icon">📸</div><span data-en="Upload Leaf Image" data-hi="पत्ती की छवि अपलोड करें">Upload Leaf Image</span></div>
+      <div class="plant-badge" id="plant-badge">🌿 <span data-en="All Plants" data-hi="सभी पौधे">All Plants</span></div>
+    </div>
+    <div class="card-body">
+      <div class="dropzone" id="dropzone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave()" ondrop="handleDrop(event)">
+        <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)"/>
+        <div class="dz-icon">🌿</div>
+        <p class="dz-title" data-en="Drop your leaf image here" data-hi="यहाँ अपनी पत्ती की छवि छोड़ें">Drop your leaf image here</p>
+        <p class="dz-sub" data-en="or click to browse · JPG, PNG, WEBP · Max 10MB" data-hi="या ब्राउज़ करने के लिए क्लिक करें · JPG, PNG, WEBP · अधिकतम 10MB">or click to browse · JPG, PNG, WEBP · Max 10MB</p>
+      </div>
+      <div id="preview-area">
+        <img id="preview-img" src="" alt="Preview"/>
+        <button class="preview-remove" onclick="clearImage()">✕</button>
+      </div>
+      <div class="tip-box">💡 <span data-en="Use a clear image with good lighting for best results." data-hi="सर्वोत्तम परिणाम के लिए अच्छी रोशनी वाली स्पष्ट छवि का उपयोग करें।">Use a clear image with good lighting for best results.</span></div>
+      <div class="error-box" id="error-box">⚠️ <span id="error-msg"></span></div>
+      <button class="btn-analyze" id="analyze-btn" onclick="analyzeImage()" disabled>
+        <div class="spinner" id="spinner"></div>
+        <span id="btn-text">🔍 <span data-en="Analyze Plant" data-hi="पौधे का विश्लेषण करें">Analyze Plant</span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="result-section">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <button class="new-analysis-btn" onclick="newAnalysis()">← <span data-en="New Analysis" data-hi="नया विश्लेषण">New Analysis</span></button>
+      <button class="new-analysis-btn" onclick="saveToHistory()" style="background:var(--g600);color:#fff;border-color:var(--g600);">💾 <span data-en="Save" data-hi="सहेजें">Save</span></button>
+    </div>
+
+    <!-- Diagnosis Card -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="card-icon">🩺</div><span data-en="Diagnosis Result" data-hi="निदान परिणाम">Diagnosis Result</span></div>
+        <span class="severity-badge" id="severity-badge">—</span>
+      </div>
+      <div class="card-body">
+        <div style="margin-bottom:16px;">
+          <p style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--tl);margin-bottom:6px;" data-en="Detected Disease" data-hi="पता चला रोग">Detected Disease</p>
+          <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--td);" id="disease-name">—</h2>
+          <p style="font-size:0.8rem;color:var(--tl);margin-top:4px;font-style:italic;" id="scientific-name"></p>
+        </div>
+        <div class="confidence-wrap">
+          <div class="conf-label"><span data-en="Model Confidence" data-hi="मॉडल विश्वसनीयता">Model Confidence</span><strong id="conf-pct">—</strong></div>
+          <div class="conf-bg"><div class="conf-bar" id="conf-bar"></div></div>
+        </div>
+        <div class="desc-box" id="disease-desc">—</div>
+      </div>
+    </div>
+
+    <!-- Treatment Card -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="card-icon">💊</div><span data-en="Treatment Recommendations" data-hi="उपचार सिफारिशें">Treatment Recommendations</span></div>
+      </div>
+      <div class="card-body">
+        <ul class="treatment-list" id="treatment-list"></ul>
+        <div class="prev-box" id="prev-box" style="display:none;">
+          🛡️ <strong data-en="Prevention: " data-hi="रोकथाम: ">Prevention: </strong><span id="prev-text"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alternatives -->
+    <div class="card" id="alt-card" style="display:none;">
+      <div class="card-header">
+        <div class="card-title"><div class="card-icon">📊</div><span data-en="Other Possibilities" data-hi="अन्य संभावनाएं">Other Possibilities</span></div>
+      </div>
+      <div class="card-body">
+        <div class="alt-grid" id="alt-grid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let selectedFile=null;
+let currentLang='en';
+let lastResult=null;
+
+// Get plant from URL
+const urlParams=new URLSearchParams(window.location.search);
+const plant=urlParams.get('plant');
+if(plant){
+  const names={potato:'🥔 Potato',tomato:'🍅 Tomato',pepper:'🌶 Bell Pepper'};
+  document.getElementById('plant-badge').innerHTML=names[plant]||'🌿 All Plants';
+}
+
+function handleFile(e){loadFile(e.target.files[0]);}
+function handleDragOver(e){e.preventDefault();document.getElementById('dropzone').classList.add('drag-over');}
+function handleDragLeave(){document.getElementById('dropzone').classList.remove('drag-over');}
+function handleDrop(e){e.preventDefault();document.getElementById('dropzone').classList.remove('drag-over');loadFile(e.dataTransfer.files[0]);}
+
+function loadFile(file){
+  if(!file)return;
+  if(file.size>10*1024*1024){showError('File too large. Max 10MB.');return;}
+  selectedFile=file;
+  hideError();
+  document.getElementById('result-section').style.display='none';
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById('preview-img').src=e.target.result;
+    document.getElementById('preview-area').style.display='block';
+  };
+  reader.readAsDataURL(file);
+  document.getElementById('analyze-btn').disabled=false;
+}
+
+function clearImage(){
+  selectedFile=null;
+  document.getElementById('preview-area').style.display='none';
+  document.getElementById('preview-img').src='';
+  document.getElementById('fileInput').value='';
+  document.getElementById('analyze-btn').disabled=true;
+  document.getElementById('result-section').style.display='none';
+}
+
+async function analyzeImage(){
+  if(!selectedFile)return;
+  setLoading(true);
+  showProcessing();
+  const fd=new FormData();
+  fd.append('image',selectedFile);
+  fd.append('lang',currentLang);
+  try{
+    const res=await fetch('/predict',{method:'POST',body:fd});
+    const data=await res.json();
+    hideProcessing();
+    if(data.error){showError(data.error);return;}
+    if(!data.success){showError(data.error||'Analysis failed.');return;}
+    lastResult=data;
+    displayResults(data);
+  }catch(e){
+    hideProcessing();
+    showError('Connection error. Make sure Flask server is running.');
+  }finally{setLoading(false);}
+}
+
+function showProcessing(){
+  document.getElementById('processing-overlay').classList.add('show');
+  let i=0;const steps=['s1','s2','s3'];
+  const iv=setInterval(()=>{
+    if(i<steps.length){document.getElementById(steps[i]).classList.add('show');i++;}
+    else{clearInterval(iv);}
+  },700);
+}
+function hideProcessing(){
+  document.getElementById('processing-overlay').classList.remove('show');
+  ['s1','s2','s3'].forEach(s=>document.getElementById(s).classList.remove('show'));
+}
+
+function displayResults(data){
+  const p=data.prediction;
+  document.getElementById('disease-name').textContent=p.display_name;
+  document.getElementById('conf-pct').textContent=p.confidence.toFixed(1)+'%';
+  document.getElementById('disease-desc').textContent=p.description;
+  const badge=document.getElementById('severity-badge');
+  badge.textContent=p.severity;
+  badge.style.background=p.severity_color+'22';
+  badge.style.color=p.severity_color;
+  badge.style.border='1px solid '+p.severity_color+'44';
+  const bar=document.getElementById('conf-bar');
+  bar.style.width='0';
+  setTimeout(()=>{bar.style.width=p.confidence+'%';},100);
+  const ul=document.getElementById('treatment-list');
+  ul.innerHTML='';
+  p.treatment.forEach((t,i)=>{
+    const li=document.createElement('li');
+    li.className='treatment-item';
+    li.style.animationDelay=(i*0.08)+'s';
+    li.innerHTML='<span class="t-num">'+(i+1)+'</span><span>'+t+'</span>';
+    ul.appendChild(li);
+  });
+  if(p.prevention){
+    document.getElementById('prev-text').textContent=p.prevention;
+    document.getElementById('prev-box').style.display='block';
+  }
+  if(data.alternatives&&data.alternatives.length>0){
+    const grid=document.getElementById('alt-grid');
+    grid.innerHTML='';
+    data.alternatives.forEach(a=>{
+      const d=document.createElement('div');
+      d.className='alt-item';
+      d.innerHTML='<div class="alt-name">'+a.name+'</div><div class="alt-conf">'+a.confidence.toFixed(1)+'% confidence</div>';
+      grid.appendChild(d);
+    });
+    document.getElementById('alt-card').style.display='block';
+  }
+  document.getElementById('result-section').style.display='block';
+  document.getElementById('result-section').scrollIntoView({behavior:'smooth'});
+  saveToHistoryAuto(data);
+}
+
+function saveToHistoryAuto(data){
+  const history=JSON.parse(localStorage.getItem('plantHistory')||'[]');
+  history.unshift({date:new Date().toISOString(),plant:plant||'unknown',disease:data.prediction.display_name,confidence:data.prediction.confidence,severity:data.prediction.severity,color:data.prediction.severity_color});
+  localStorage.setItem('plantHistory',JSON.stringify(history.slice(0,20)));
+}
+
+function saveToHistory(){alert('Saved to history! ✅');}
+function newAnalysis(){clearImage();document.getElementById('result-section').style.display='none';window.scrollTo({top:0,behavior:'smooth'});}
+function setLoading(l){const btn=document.getElementById('analyze-btn');const sp=document.getElementById('spinner');btn.disabled=l;sp.style.display=l?'block':'none';}
+function showError(msg){const b=document.getElementById('error-box');document.getElementById('error-msg').textContent=msg;b.style.display='block';}
+function hideError(){document.getElementById('error-box').style.display='none';}
+function setLang(lang){
+  currentLang=lang;
+  document.getElementById('btn-en').classList.toggle('active',lang==='en');
+  document.getElementById('btn-hi').classList.toggle('active',lang==='hi');
+  document.querySelectorAll('[data-en]').forEach(el=>{
+    const txt=el.getAttribute('data-'+lang)||el.getAttribute('data-en');
+    el.textContent=txt;
+  });
+}
+</script>
+</body>
+</html>

@@ -1,8 +1,3 @@
-# =============================================================
-# Flask Backend - Using ONNX Runtime (No TensorFlow needed!)
-# File: app.py
-# =============================================================
-
 import os
 import json
 import numpy as np
@@ -11,7 +6,6 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from PIL import Image
 import onnxruntime as ort
-
 from disease_info import get_disease_info, get_severity_color
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
@@ -21,12 +15,10 @@ app.config["UPLOAD_FOLDER"] = "uploads"
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "bmp", "webp"}
 IMG_SIZE = (224, 224)
-
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 MODEL_PATH       = "model/model.onnx"
 CLASS_NAMES_PATH = "model/class_names.json"
-
 session = None
 class_names = {}
 
@@ -40,12 +32,10 @@ def load_model_and_classes():
     except Exception as e:
         print(f"[ERROR] Could not load ONNX model: {e}")
         print("[WARN] Running in demo mode.")
-
     try:
         with open(CLASS_NAMES_PATH, "r") as f:
             class_names = json.load(f)
         print(f"[INFO] Loaded {len(class_names)} class names.")
-        print(f"[INFO] Classes: {list(class_names.values())}")
     except Exception as e:
         print(f"[WARN] Could not load class names: {e}")
 
@@ -81,10 +71,28 @@ def predict(image_path):
         print(f"[ERROR] Prediction error: {e}")
         return [("Tomato_Late_blight", 0.50)]
 
+# ===================== PAGE ROUTES =====================
 @app.route("/")
 def index():
     return render_template("index.html")
 
+@app.route("/select")
+def select():
+    return render_template("select.html")
+
+@app.route("/diagnose")
+def diagnose():
+    return render_template("diagnose.html")
+
+@app.route("/history")
+def history():
+    return render_template("history.html")
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+# ===================== API ROUTES =====================
 @app.route("/predict", methods=["POST"])
 def predict_disease():
     if "image" not in request.files:
@@ -94,13 +102,21 @@ def predict_disease():
     if file.filename == "":
         return jsonify({"error": "No file selected."}), 400
     if not allowed_file(file.filename):
-        return jsonify({"error": f"File type not allowed."}), 400
+        return jsonify({"error": "File type not allowed."}), 400
     filename = secure_filename(file.filename)
     save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
     file.save(save_path)
     try:
         results = predict(save_path)
         top_class, top_confidence = results[0]
+
+        # Confidence threshold check
+        if top_confidence < 0.40:
+            return jsonify({
+                "success": False,
+                "error": "Image not recognized as a plant leaf. Please upload a clear leaf photo of Potato, Tomato, or Bell Pepper."
+            }), 200
+
         disease_info = get_disease_info(top_class, lang)
         severity_color = get_severity_color(disease_info.get("severity", "Unknown"))
         alternatives = []
@@ -135,11 +151,7 @@ def predict_disease():
 
 @app.route("/health")
 def health():
-    return jsonify({
-        "status": "ok",
-        "model_loaded": session is not None,
-        "classes": len(class_names)
-    })
+    return jsonify({"status": "ok", "model_loaded": session is not None, "classes": len(class_names)})
 
 @app.route("/classes")
 def get_classes():
@@ -149,10 +161,18 @@ def get_classes():
 def too_large(e):
     return jsonify({"error": "File too large."}), 413
 
+@app.errorhandler(404)
+def not_found(e):
+    return render_template("index.html")
+
 if __name__ == "__main__":
     print("\n" + "="*50)
-    print("  Plant Disease Classifier - ONNX Runtime")
+    print("  PlantHealth AI - Multi Page Flask Server")
     print("="*50)
-    print("  URL: http://127.0.0.1:5000")
+    print("  Home:     http://127.0.0.1:5000")
+    print("  Select:   http://127.0.0.1:5000/select")
+    print("  Diagnose: http://127.0.0.1:5000/diagnose")
+    print("  History:  http://127.0.0.1:5000/history")
+    print("  About:    http://127.0.0.1:5000/about")
     print("="*50 + "\n")
     app.run(debug=True, host="0.0.0.0", port=5000)

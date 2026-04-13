@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>About — PlantHealth AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{--g900:#0d2b1a;--g800:#1a3d2b;--g700:#1f5c38;--g600:#2d7a4f;--g500:#3a9e68;--g400:#52b788;--g300:#74c69d;--g100:#d8f3dc;--g50:#f0faf3;--cream:#fafaf7;--white:#ffffff;--td:#0d1f16;--tm:#2d4a38;--tl:#5a7a65;--sh:0 8px 24px rgba(13,43,26,0.12);--r:16px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans','Noto Sans Devanagari',sans-serif;background:var(--cream);color:var(--td);}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,0.93);backdrop-filter:blur(16px);border-bottom:1px solid rgba(82,183,136,0.15);padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{display:flex;align-items:center;gap:10px;font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--g700);text-decoration:none;}
+.nav-logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--g500),var(--g700));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.nav-links{display:flex;gap:8px;list-style:none;}
+.nav-links a{text-decoration:none;color:var(--tl);font-size:0.9rem;font-weight:500;padding:8px 16px;border-radius:50px;transition:all 0.2s;}
+.nav-links a.active{background:var(--g100);color:var(--g700);font-weight:600;}
+.lang-toggle{display:flex;background:var(--g50);border:1px solid var(--g100);border-radius:50px;padding:3px;}
+.lang-btn{background:none;border:none;font-family:inherit;font-size:0.8rem;font-weight:600;color:var(--tl);padding:5px 12px;border-radius:50px;cursor:pointer;transition:all 0.2s;}
+.lang-btn.active{background:var(--g600);color:var(--white);}
+
+/* Hero */
+.about-hero{background:linear-gradient(135deg,var(--g800),var(--g900));padding:120px 40px 80px;text-align:center;}
+.about-hero h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,4vw,3rem);font-weight:900;color:var(--white);margin-bottom:16px;}
+.about-hero p{font-size:1rem;color:rgba(255,255,255,0.7);max-width:600px;margin:0 auto;line-height:1.7;}
+
+.page{padding:60px 40px;max-width:900px;margin:0 auto;}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:60px;}
+.stat-card{background:var(--white);border:1px solid var(--g100);border-radius:var(--r);padding:24px;text-align:center;}
+.stat-num{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--g600);margin-bottom:4px;}
+.stat-label{font-size:0.82rem;color:var(--tl);}
+
+/* Tech Stack */
+.section-title{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--td);margin-bottom:24px;}
+.tech-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:60px;}
+.tech-card{background:var(--white);border:1px solid var(--g100);border-radius:12px;padding:20px;display:flex;align-items:center;gap:14px;}
+.tech-icon{font-size:1.8rem;flex-shrink:0;}
+.tech-name{font-weight:600;color:var(--td);font-size:0.95rem;margin-bottom:2px;}
+.tech-desc{font-size:0.78rem;color:var(--tl);}
+
+/* Team */
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:60px;}
+.team-card{background:var(--white);border:1px solid var(--g100);border-radius:var(--r);padding:28px;text-align:center;transition:all 0.3s;}
+.team-card:hover{border-color:var(--g300);box-shadow:var(--sh);transform:translateY(-4px);}
+.team-avatar{width:64px;height:64px;background:linear-gradient(135deg,var(--g400),var(--g600));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 16px;}
+.team-name{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--td);margin-bottom:4px;}
+.team-role{font-size:0.8rem;color:var(--tl);margin-bottom:12px;}
+.team-github{display:inline-flex;align-items:center;gap:4px;font-size:0.78rem;color:var(--g600);text-decoration:none;font-weight:500;}
+.team-github:hover{text-decoration:underline;}
+
+footer{background:var(--g900);color:rgba(255,255,255,0.6);padding:32px 40px;text-align:center;font-size:0.85rem;}
+footer strong{color:var(--white);}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo"><div class="nav-logo-icon">🌿</div>PlantHealth AI</a>
+  <ul class="nav-links">
+    <li><a href="index.html" data-en="Home" data-hi="होम">Home</a></li>
+    <li><a href="select.html" data-en="Diagnose" data-hi="निदान">Diagnose</a></li>
+    <li><a href="history.html" data-en="History" data-hi="इतिहास">History</a></li>
+    <li><a href="about.html" class="active" data-en="About" data-hi="हमारे बारे में">About</a></li>
+  </ul>
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" id="btn-hi" onclick="setLang('hi')">हिं</button>
+  </div>
+</nav>
+
+<div class="about-hero">
+  <h1 data-en="About PlantHealth AI" data-hi="PlantHealth AI के बारे में">About PlantHealth AI</h1>
+  <p data-en="A B.Tech AI & Data Science project — helping Indian farmers detect plant diseases instantly using deep learning." data-hi="एक B.Tech AI और Data Science प्रोजेक्ट — डीप लर्निंग का उपयोग करके भारतीय किसानों को पौधों की बीमारियां तुरंत पहचानने में मदद करना।">A B.Tech AI & Data Science project — helping Indian farmers detect plant diseases instantly using deep learning.</p>
+</div>
+
+<div class="page">
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-num">97.7%</div><div class="stat-label" data-en="Model Accuracy" data-hi="मॉडल सटीकता">Model Accuracy</div></div>
+    <div class="stat-card"><div class="stat-num">20K+</div><div class="stat-label" data-en="Training Images" data-hi="प्रशिक्षण छवियां">Training Images</div></div>
+    <div class="stat-card"><div class="stat-num">15</div><div class="stat-label" data-en="Disease Classes" data-hi="रोग वर्ग">Disease Classes</div></div>
+    <div class="stat-card"><div class="stat-num">2s</div><div class="stat-label" data-en="Detection Speed" data-hi="पहचान गति">Detection Speed</div></div>
+  </div>
+
+  <!-- Tech Stack -->
+  <h2 class="section-title" data-en="🛠 Tech Stack" data-hi="🛠 तकनीक">🛠 Tech Stack</h2>
+  <div class="tech-grid">
+    <div class="tech-card"><div class="tech-icon">🧠</div><div><div class="tech-name">TensorFlow + Keras</div><div class="tech-desc" data-en="Deep learning framework" data-hi="डीप लर्निंग फ्रेमवर्क">Deep learning framework</div></div></div>
+    <div class="tech-card"><div class="tech-icon">📱</div><div><div class="tech-name">MobileNetV2</div><div class="tech-desc" data-en="Transfer learning model" data-hi="ट्रांसफर लर्निंग मॉडल">Transfer learning model</div></div></div>
+    <div class="tech-card"><div class="tech-icon">⚡</div><div><div class="tech-name">ONNX Runtime</div><div class="tech-desc" data-en="Lightweight inference" data-hi="हल्का अनुमान">Lightweight inference</div></div></div>
+    <div class="tech-card"><div class="tech-icon">🌐</div><div><div class="tech-name">Flask</div><div class="tech-desc" data-en="Python web backend" data-hi="Python वेब बैकएंड">Python web backend</div></div></div>
+    <div class="tech-card"><div class="tech-icon">🎨</div><div><div class="tech-name">HTML + CSS + JS</div><div class="tech-desc" data-en="Frontend interface" data-hi="फ्रंटएंड इंटरफेस">Frontend interface</div></div></div>
+    <div class="tech-card"><div class="tech-icon">☁️</div><div><div class="tech-name">Google Colab GPU</div><div class="tech-desc" data-en="T4 GPU training platform" data-hi="T4 GPU प्रशिक्षण प्लेटफॉर्म">T4 GPU training platform</div></div></div>
+  </div>
+
+  <!-- Team -->
+  <h2 class="section-title" data-en="👥 Our Team" data-hi="👥 हमारी टीम">👥 Our Team</h2>
+  <div class="team-grid">
+    <div class="team-card">
+      <div class="team-avatar">👩</div>
+      <div class="team-name">Priya Sandhya</div>
+      <div class="team-role" data-en="Team Lead · ML Engineer" data-hi="टीम लीड · ML इंजीनियर">Team Lead · ML Engineer</div>
+      <a href="https://github.com/priya27ai055-tech" class="team-github" target="_blank">⌨ @priya27ai055-tech</a>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar">👩</div>
+      <div class="team-name">Aishwary</div>
+      <div class="team-role" data-en="Backend Developer" data-hi="बैकएंड डेवलपर">Backend Developer</div>
+      <a href="https://github.com/AishwaryB-SATI" class="team-github" target="_blank">⌨ @AishwaryB-SATI</a>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar">👩</div>
+      <div class="team-name">Anshika Jain</div>
+      <div class="team-role" data-en="Frontend Developer" data-hi="फ्रंटएंड डेवलपर">Frontend Developer</div>
+      <a href="https://github.com/Anshika-Jain446" class="team-github" target="_blank">⌨ @Anshika-Jain446</a>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar">👩</div>
+      <div class="team-name">Nilima Jhapate</div>
+      <div class="team-role" data-en="Data Scientist" data-hi="डेटा वैज्ञानिक">Data Scientist</div>
+      <a href="https://github.com/Nilima620" class="team-github" target="_blank">⌨ @Nilima620</a>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar">👩</div>
+      <div class="team-name">Rajshree</div>
+      <div class="team-role" data-en="UI/UX Designer" data-hi="UI/UX डिज़ाइनर">UI/UX Designer</div>
+      <a href="https://github.com/Rajshree609" class="team-github" target="_blank">⌨ @Rajshree609</a>
+    </div>
+    <div class="team-card" style="background:var(--g50);border-color:var(--g200,#b7e4c7);">
+      <div class="team-avatar" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);">🌿</div>
+      <div class="team-name" style="color:var(--g700);">B.Tech AI & DS</div>
+      <div class="team-role">2024 — 2026</div>
+      <div style="font-size:0.75rem;color:var(--tl);" data-en="Department of AI & Data Science" data-hi="AI और डेटा साइंस विभाग">Department of AI & Data Science</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p><strong>PlantHealth AI</strong> &bull; B.Tech AI &amp; Data Science Project &bull; 2026</p>
+  <p style="margin-top:8px;opacity:0.5;font-size:0.78rem;" data-en="Made with love for Indian farmers." data-hi="भारतीय किसानों के लिए प्यार से बनाया।">Made with love for Indian farmers.</p>
+</footer>
+
+<script>
+function setLang(lang){
+  document.getElementById('btn-en').classList.toggle('active',lang==='en');
+  document.getElementById('btn-hi').classList.toggle('active',lang==='hi');
+  document.querySelectorAll('[data-en]').forEach(el=>{
+    el.textContent=el.getAttribute('data-'+lang)||el.getAttribute('data-en');
+  });
+}
+</script>
+</body>
+</html>

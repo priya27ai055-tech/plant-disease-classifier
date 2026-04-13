@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Select Plant — PlantHealth AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{--g900:#0d2b1a;--g800:#1a3d2b;--g700:#1f5c38;--g600:#2d7a4f;--g500:#3a9e68;--g400:#52b788;--g300:#74c69d;--g100:#d8f3dc;--g50:#f0faf3;--cream:#fafaf7;--white:#ffffff;--td:#0d1f16;--tm:#2d4a38;--tl:#5a7a65;--sh:0 8px 24px rgba(13,43,26,0.12);--r:16px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans','Noto Sans Devanagari',sans-serif;background:var(--cream);color:var(--td);min-height:100vh;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,0.93);backdrop-filter:blur(16px);border-bottom:1px solid rgba(82,183,136,0.15);padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{display:flex;align-items:center;gap:10px;font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--g700);text-decoration:none;}
+.nav-logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--g500),var(--g700));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.nav-links{display:flex;gap:8px;list-style:none;}
+.nav-links a{text-decoration:none;color:var(--tl);font-size:0.9rem;font-weight:500;padding:8px 16px;border-radius:50px;transition:all 0.2s;}
+.nav-links a:hover,.nav-links a.active{background:var(--g50);color:var(--g700);}
+.nav-links a.active{background:var(--g100);font-weight:600;}
+.lang-toggle{display:flex;background:var(--g50);border:1px solid var(--g100);border-radius:50px;padding:3px;}
+.lang-btn{background:none;border:none;font-family:inherit;font-size:0.8rem;font-weight:600;color:var(--tl);padding:5px 12px;border-radius:50px;cursor:pointer;transition:all 0.2s;}
+.lang-btn.active{background:var(--g600);color:var(--white);}
+.page{padding:100px 40px 60px;max-width:900px;margin:0 auto;}
+.back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--tl);text-decoration:none;font-size:0.9rem;font-weight:500;margin-bottom:32px;transition:color 0.2s;}
+.back-btn:hover{color:var(--g600);}
+.page-title{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:700;color:var(--td);margin-bottom:8px;text-align:center;}
+.page-sub{font-size:1rem;color:var(--tl);text-align:center;margin-bottom:48px;}
+.plants-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:32px;}
+.plant-card{background:var(--white);border-radius:var(--r);border:2px solid var(--g100);padding:32px 24px;cursor:pointer;transition:all 0.3s;text-align:center;position:relative;overflow:hidden;}
+.plant-card.selected{border-color:var(--g500);background:var(--g50);}
+.plant-card.selected::after{content:'✓';position:absolute;top:12px;right:12px;width:24px;height:24px;background:var(--g500);color:var(--white);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;}
+.plant-card:hover{border-color:var(--g300);transform:translateY(-4px);box-shadow:var(--sh);}
+.plant-emoji{font-size:3rem;margin-bottom:16px;}
+.plant-name{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--td);margin-bottom:4px;}
+.plant-latin{font-size:0.8rem;font-style:italic;color:var(--tl);margin-bottom:12px;}
+.plant-count{display:inline-flex;align-items:center;gap:4px;background:var(--g50);color:var(--g700);border-radius:50px;padding:4px 12px;font-size:0.78rem;font-weight:600;}
+.info-box{background:linear-gradient(135deg,var(--g50),var(--white));border:1px solid var(--g100);border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;gap:12px;margin-bottom:32px;font-size:0.88rem;color:var(--tm);}
+.btn-next{display:block;width:100%;background:linear-gradient(135deg,var(--g500),var(--g700));color:var(--white);border:none;border-radius:50px;padding:16px;font-family:inherit;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;text-align:center;text-decoration:none;opacity:0.5;pointer-events:none;}
+.btn-next.active{opacity:1;pointer-events:all;}
+.btn-next.active:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(45,122,79,0.4);}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo"><div class="nav-logo-icon">🌿</div>PlantHealth AI</a>
+  <ul class="nav-links">
+    <li><a href="index.html" data-en="Home" data-hi="होम">Home</a></li>
+    <li><a href="select.html" class="active" data-en="Diagnose" data-hi="निदान">Diagnose</a></li>
+    <li><a href="about.html" data-en="About" data-hi="हमारे बारे में">About</a></li>
+  </ul>
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" id="btn-hi" onclick="setLang('hi')">हिं</button>
+  </div>
+</nav>
+<div class="page">
+  <a href="index.html" class="back-btn">← <span data-en="Back to Home" data-hi="होम पर वापस">Back to Home</span></a>
+  <h1 class="page-title" data-en="Select Your Plant 🌿" data-hi="अपना पौधा चुनें 🌿">Select Your Plant 🌿</h1>
+  <p class="page-sub" data-en="Choose the plant type you want to analyze for better accuracy" data-hi="बेहतर सटीकता के लिए वह पौधा प्रकार चुनें जिसका आप विश्लेषण करना चाहते हैं">Choose the plant type you want to analyze for better accuracy</p>
+  <div class="plants-grid">
+    <div class="plant-card" onclick="selectPlant('potato',this)">
+      <div class="plant-emoji">🥔</div>
+      <div class="plant-name" data-en="Potato" data-hi="आलू">Potato</div>
+      <div class="plant-latin">Solanum tuberosum</div>
+      <div class="plant-count">🦠 <span data-en="3 diseases" data-hi="3 रोग">3 diseases</span></div>
+    </div>
+    <div class="plant-card" onclick="selectPlant('tomato',this)">
+      <div class="plant-emoji">🍅</div>
+      <div class="plant-name" data-en="Tomato" data-hi="टमाटर">Tomato</div>
+      <div class="plant-latin">Solanum lycopersicum</div>
+      <div class="plant-count">🦠 <span data-en="10 diseases" data-hi="10 रोग">10 diseases</span></div>
+    </div>
+    <div class="plant-card" onclick="selectPlant('pepper',this)">
+      <div class="plant-emoji">🌶</div>
+      <div class="plant-name" data-en="Bell Pepper" data-hi="शिमला मिर्च">Bell Pepper</div>
+      <div class="plant-latin">Capsicum annuum</div>
+      <div class="plant-count">🦠 <span data-en="2 diseases" data-hi="2 रोग">2 diseases</span></div>
+    </div>
+  </div>
+  <div class="info-box">💡 <span data-en="Select the correct plant type for better accuracy in disease detection." data-hi="रोग पहचान में बेहतर सटीकता के लिए सही पौधा प्रकार चुनें।">Select the correct plant type for better accuracy in disease detection.</span></div>
+  <a href="diagnose.html" class="btn-next" id="nextBtn">
+    <span data-en="Next: Upload Image →" data-hi="अगला: छवि अपलोड करें →">Next: Upload Image →</span>
+  </a>
+</div>
+<script>
+let selectedPlant=null;
+function selectPlant(plant,el){
+  selectedPlant=plant;
+  document.querySelectorAll('.plant-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  const btn=document.getElementById('nextBtn');
+  btn.classList.add('active');
+  btn.href='diagnose.html?plant='+plant;
+}
+let currentLang='en';
+function setLang(lang){
+  currentLang=lang;
+  document.getElementById('btn-en').classList.toggle('active',lang==='en');
+  document.getElementById('btn-hi').classList.toggle('active',lang==='hi');
+  document.querySelectorAll('[data-en]').forEach(el=>{
+    const txt=el.getAttribute('data-'+lang)||el.getAttribute('data-en');
+    el.textContent=txt;
+  });
+}
+</script>
+</body>
+</html>

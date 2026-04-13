@@ -1,903 +1,1043 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plant Disease Classifier | पौधा रोग पहचानकर्ता</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PlantHealth AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --g900:#0d2b1a;--g800:#1a3d2b;--g700:#1f5c38;--g600:#2d7a4f;
+  --g500:#3a9e68;--g400:#52b788;--g300:#74c69d;--g100:#d8f3dc;--g50:#f0faf3;
+  --cream:#fafaf7;--white:#fff;--td:#0d1f16;--tm:#2d4a38;--tl:#5a7a65;
+  --sh:0 8px 24px rgba(13,43,26,0.12);--shl:0 20px 60px rgba(13,43,26,0.18);--r:16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans','Noto Sans Devanagari',sans-serif;background:var(--cream);color:var(--td);overflow-x:hidden;}
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet" />
+/* ===== NAV ===== */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,0.93);backdrop-filter:blur(16px);border-bottom:1px solid rgba(82,183,136,0.15);padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;transition:box-shadow 0.3s;}
+nav.scrolled{box-shadow:var(--sh);}
+.nav-logo{display:flex;align-items:center;gap:10px;font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--g700);cursor:pointer;}
+.nav-logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--g500),var(--g700));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.nav-links{display:flex;gap:4px;list-style:none;}
+.nav-links a{text-decoration:none;color:var(--tl);font-size:0.9rem;font-weight:500;padding:8px 16px;border-radius:50px;cursor:pointer;transition:all 0.2s;display:block;}
+.nav-links a:hover{background:var(--g50);color:var(--g700);}
+.nav-links a.active{background:var(--g100);color:var(--g700);font-weight:600;}
+.lang-toggle{display:flex;background:var(--g50);border:1px solid var(--g100);border-radius:50px;padding:3px;}
+.lang-btn{background:none;border:none;font-family:inherit;font-size:0.8rem;font-weight:600;color:var(--tl);padding:5px 12px;border-radius:50px;cursor:pointer;transition:all 0.2s;}
+.lang-btn.active{background:var(--g600);color:var(--white);}
 
-  <style>
-    /* =============================================
-       CSS VARIABLES & RESET
-    ============================================= */
-    :root {
-      --green-dark:   #1a3a2a;
-      --green-mid:    #2d6a4f;
-      --green-light:  #52b788;
-      --green-pale:   #b7e4c7;
-      --gold:         #d4a017;
-      --gold-light:   #f4c542;
-      --cream:        #faf8f2;
-      --cream-dark:   #f0ece0;
-      --text-dark:    #1c2b22;
-      --text-mid:     #3d5a47;
-      --text-light:   #6b8f74;
-      --white:        #ffffff;
-      --shadow:       0 8px 32px rgba(26, 58, 42, 0.15);
-      --shadow-hover: 0 16px 48px rgba(26, 58, 42, 0.25);
-      --radius:       16px;
-      --radius-sm:    8px;
-    }
+/* ===== PAGES ===== */
+.page{display:none;min-height:100vh;}
+.page.active{display:block;}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ===== BUTTONS ===== */
+.btn-primary{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--g500),var(--g700));color:var(--white);border:none;border-radius:50px;padding:14px 28px;font-family:inherit;font-size:0.95rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all 0.3s;box-shadow:0 4px 16px rgba(45,122,79,0.35);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(45,122,79,0.45);}
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--g700);border:2px solid var(--g300);border-radius:50px;padding:12px 24px;font-family:inherit;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.3s;}
+.btn-secondary:hover{background:var(--g50);border-color:var(--g500);}
+.back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--tl);background:none;border:none;font-family:inherit;font-size:0.9rem;font-weight:500;cursor:pointer;margin-bottom:24px;transition:color 0.2s;padding:0;}
+.back-btn:hover{color:var(--g600);}
 
-    html { scroll-behavior: smooth; }
+/* ===== HOME PAGE ===== */
+.hero{min-height:100vh;padding:120px 40px 80px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;max-width:1200px;margin:0 auto;}
+.hero-text{animation:fadeUp 0.8s ease forwards;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--g50);border:1px solid var(--g100);border-radius:50px;padding:8px 18px;font-size:0.82rem;font-weight:600;color:var(--g700);letter-spacing:0.04em;margin-bottom:24px;}
+.hero-badge-dot{width:8px;height:8px;background:var(--g500);border-radius:50%;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(1.3);}}
+.hero-title{font-family:'Playfair Display',serif;font-size:clamp(2.5rem,5vw,4rem);font-weight:900;line-height:1.1;color:var(--td);margin-bottom:20px;}
+.hero-title span{color:var(--g600);}
+.hero-subtitle{font-size:1.1rem;font-weight:300;color:var(--tl);line-height:1.7;margin-bottom:36px;max-width:480px;}
+.hero-buttons{display:flex;gap:16px;flex-wrap:wrap;}
+.hero-stats{display:flex;gap:32px;margin-top:48px;padding-top:32px;border-top:1px solid var(--g100);}
+.stat-num{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--g700);line-height:1;}
+.stat-label{font-size:0.8rem;color:var(--tl);margin-top:4px;}
+.hero-visual{position:relative;display:flex;align-items:center;justify-content:center;animation:fadeUp 0.8s ease 0.2s both;}
+.hero-card-main{background:var(--white);border-radius:24px;box-shadow:var(--shl);padding:32px;width:340px;border:1px solid rgba(82,183,136,0.15);position:relative;z-index:2;}
+.hero-leaf-img{width:100%;height:200px;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:20px;}
+.result-badge{background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:50px;padding:4px 12px;font-size:0.75rem;font-weight:700;}
+.conf-bar-wrap{height:8px;background:var(--g100);border-radius:50px;overflow:hidden;margin-top:8px;}
+.conf-bar-fill{height:100%;width:92%;background:linear-gradient(90deg,var(--g400),var(--g600));border-radius:50px;animation:grow 1.5s ease 0.5s both;}
+@keyframes grow{from{width:0;}}
+.float-card{position:absolute;background:var(--white);border-radius:14px;box-shadow:var(--sh);padding:12px 16px;border:1px solid var(--g100);animation:float 3s ease-in-out infinite;}
+.fc1{top:-20px;right:-20px;animation-delay:0s;}
+.fc2{bottom:20px;left:-30px;animation-delay:1s;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.fc-text{font-size:0.78rem;font-weight:600;color:var(--g700);}
+.fc-sub{font-size:0.7rem;color:var(--tl);}
+.section{padding:80px 40px;max-width:1200px;margin:0 auto;}
+.section-label{font-size:0.8rem;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:12px;}
+.section-title{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,3vw,2.5rem);font-weight:700;color:var(--td);margin-bottom:48px;}
+.plants-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.plant-card{background:var(--white);border-radius:var(--r);border:2px solid var(--g100);padding:28px;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;}
+.plant-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--g400),var(--g600));transform:scaleX(0);transform-origin:left;transition:transform 0.3s;}
+.plant-card:hover::before{transform:scaleX(1);}
+.plant-card:hover{border-color:var(--g300);transform:translateY(-4px);box-shadow:var(--sh);}
+.plant-emoji{font-size:2.5rem;margin-bottom:16px;}
+.plant-name{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--td);margin-bottom:4px;}
+.plant-latin{font-size:0.8rem;font-style:italic;color:var(--tl);margin-bottom:16px;}
+.plant-tag{display:inline-flex;align-items:center;gap:6px;background:var(--g50);color:var(--g700);border-radius:50px;padding:4px 12px;font-size:0.8rem;font-weight:600;}
+.features-bg{background:linear-gradient(135deg,var(--g800),var(--g900));padding:80px 40px;}
+.features-inner{max-width:1200px;margin:0 auto;}
+.features-bg .section-label{color:var(--g300);}
+.features-bg .section-title{color:var(--white);}
+.features-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;}
+.feature-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:var(--r);padding:28px;transition:all 0.3s;}
+.feature-card:hover{background:rgba(255,255,255,0.1);transform:translateY(-4px);}
+.feature-icon{width:48px;height:48px;background:rgba(82,183,136,0.2);border:1px solid rgba(82,183,136,0.3);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:16px;}
+.feature-title{font-size:1rem;font-weight:600;color:var(--white);margin-bottom:8px;}
+.feature-desc{font-size:0.85rem;color:rgba(255,255,255,0.6);line-height:1.6;}
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;position:relative;}
+.steps-grid::before{content:'';position:absolute;top:32px;left:10%;right:10%;height:2px;background:linear-gradient(90deg,var(--g100),var(--g400));z-index:0;}
+.step-card{position:relative;z-index:1;text-align:center;}
+.step-num{width:64px;height:64px;background:var(--white);border:3px solid var(--g400);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--g600);margin:0 auto 20px;box-shadow:0 2px 8px rgba(13,43,26,0.08);}
+.step-title{font-size:1rem;font-weight:600;color:var(--td);margin-bottom:8px;}
+.step-desc{font-size:0.85rem;color:var(--tl);line-height:1.6;}
+.cta-section{background:var(--g50);border-top:1px solid var(--g100);border-bottom:1px solid var(--g100);padding:80px 40px;text-align:center;}
+.cta-title{font-family:'Playfair Display',serif;font-size:clamp(2rem,4vw,3rem);font-weight:700;color:var(--td);margin-bottom:16px;}
+.cta-sub{font-size:1rem;color:var(--tl);margin-bottom:36px;}
 
-    body {
-      font-family: 'DM Sans', 'Noto Sans Devanagari', sans-serif;
-      background: var(--cream);
-      color: var(--text-dark);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+/* ===== SELECT PAGE ===== */
+.page-wrap{padding:100px 40px 60px;max-width:860px;margin:0 auto;}
+.page-title{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:700;color:var(--td);margin-bottom:8px;text-align:center;}
+.page-sub{font-size:1rem;color:var(--tl);text-align:center;margin-bottom:48px;}
+.sel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:24px;}
+.sel-card{background:var(--white);border-radius:var(--r);border:2px solid var(--g100);padding:32px 24px;cursor:pointer;transition:all 0.3s;text-align:center;position:relative;overflow:hidden;}
+.sel-card.selected{border-color:var(--g500);background:var(--g50);}
+.sel-card.selected::after{content:'✓';position:absolute;top:12px;right:12px;width:24px;height:24px;background:var(--g500);color:var(--white);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;}
+.sel-card:hover{border-color:var(--g300);transform:translateY(-4px);box-shadow:var(--sh);}
+.sel-emoji{font-size:3rem;margin-bottom:16px;}
+.sel-name{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--td);margin-bottom:4px;}
+.sel-latin{font-size:0.8rem;font-style:italic;color:var(--tl);margin-bottom:12px;}
+.sel-tag{display:inline-flex;align-items:center;gap:4px;background:var(--g50);color:var(--g700);border-radius:50px;padding:4px 12px;font-size:0.78rem;font-weight:600;}
+.info-box{background:var(--g50);border:1px solid var(--g100);border-radius:12px;padding:14px 18px;font-size:0.88rem;color:var(--tm);margin-bottom:24px;display:flex;align-items:center;gap:8px;}
+.btn-next{display:block;width:100%;background:linear-gradient(135deg,var(--g500),var(--g700));color:var(--white);border:none;border-radius:50px;padding:16px;font-family:inherit;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;opacity:0.4;pointer-events:none;}
+.btn-next.ready{opacity:1;pointer-events:all;}
+.btn-next.ready:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(45,122,79,0.4);}
 
-    /* =============================================
-       BACKGROUND
-    ============================================= */
-    .bg-layer {
-      position: fixed; inset: 0; z-index: -1;
-      background:
-        radial-gradient(ellipse 80% 50% at 10% 20%, rgba(82,183,136,0.12) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 90% 80%, rgba(45,106,79,0.10) 0%, transparent 60%),
-        var(--cream);
-    }
+/* ===== DIAGNOSE PAGE ===== */
+.diag-wrap{padding:100px 40px 60px;max-width:760px;margin:0 auto;}
+.card{background:var(--white);border-radius:var(--r);box-shadow:var(--sh);border:1px solid rgba(82,183,136,0.12);overflow:hidden;margin-bottom:24px;animation:fadeUp 0.5s ease forwards;}
+.card-hdr{padding:20px 28px;border-bottom:1px solid var(--g50);display:flex;align-items:center;justify-content:space-between;}
+.card-ttl{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--td);display:flex;align-items:center;gap:10px;}
+.card-ico{width:36px;height:36px;background:linear-gradient(135deg,var(--g400),var(--g600));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;}
+.plant-badge{background:var(--g50);border:1px solid var(--g100);border-radius:50px;padding:4px 14px;font-size:0.8rem;font-weight:600;color:var(--g700);}
+.card-body{padding:28px;}
+.dropzone{border:2px dashed var(--g300);border-radius:12px;padding:48px 24px;text-align:center;cursor:pointer;transition:all 0.3s;background:var(--g50);position:relative;}
+.dropzone:hover,.dropzone.drag-over{border-color:var(--g500);background:rgba(82,183,136,0.08);}
+.dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.dz-icon{font-size:2.5rem;margin-bottom:12px;animation:float 3s ease-in-out infinite;}
+.dz-title{font-size:1rem;font-weight:600;color:var(--g600);margin-bottom:6px;}
+.dz-sub{font-size:0.82rem;color:var(--tl);}
+#preview-area{display:none;margin-top:16px;border-radius:12px;overflow:hidden;border:2px solid var(--g100);position:relative;}
+#preview-img{width:100%;max-height:280px;object-fit:contain;background:var(--g50);display:block;}
+.preview-rm{position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;}
+.preview-rm:hover{background:rgba(220,38,38,0.8);}
+.tip-box{background:var(--g50);border:1px solid var(--g100);border-radius:10px;padding:12px 16px;margin-top:16px;font-size:0.82rem;color:var(--tm);display:flex;align-items:center;gap:8px;}
+.err-box{background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:14px 18px;color:#dc2626;font-size:0.88rem;display:none;margin-top:12px;}
+.btn-analyze{width:100%;background:linear-gradient(135deg,var(--g500),var(--g700));color:var(--white);border:none;border-radius:50px;padding:16px;font-family:inherit;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;margin-top:20px;display:flex;align-items:center;justify-content:center;gap:10px;}
+.btn-analyze:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(45,122,79,0.4);}
+.btn-analyze:disabled{opacity:0.45;cursor:not-allowed;}
+.spinner{width:18px;height:18px;border:3px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:none;}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-    /* Leaf decorations */
-    .leaf-deco {
-      position: fixed;
-      pointer-events: none;
-      opacity: 0.06;
-      z-index: -1;
-    }
-    .leaf-deco svg { fill: var(--green-mid); }
-    .leaf-tl { top: -40px; left: -40px; width: 320px; transform: rotate(-20deg); }
-    .leaf-br { bottom: -60px; right: -60px; width: 400px; transform: rotate(160deg); }
+/* Processing overlay */
+#proc-overlay{display:none;position:fixed;inset:0;background:rgba(13,43,26,0.88);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:24px;}
+#proc-overlay.show{display:flex;}
+.proc-ring{width:64px;height:64px;border:5px solid rgba(255,255,255,0.2);border-top-color:var(--g400);border-radius:50%;animation:spin 1s linear infinite;}
+.proc-title{color:var(--white);font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;}
+.proc-step{color:rgba(255,255,255,0.7);font-size:0.88rem;display:flex;align-items:center;gap:8px;opacity:0;transition:opacity 0.5s;}
+.proc-step.show{opacity:1;}
+.proc-dot{width:6px;height:6px;background:var(--g400);border-radius:50%;}
 
-    /* =============================================
-       LAYOUT
-    ============================================= */
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
+/* Results */
+.sev-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:50px;font-size:0.8rem;font-weight:700;letter-spacing:0.04em;}
+.conf-wrap{margin:16px 0;}
+.conf-lbl{display:flex;justify-content:space-between;font-size:0.82rem;color:var(--tl);margin-bottom:6px;}
+.conf-bg{background:var(--g50);border-radius:50px;height:10px;overflow:hidden;}
+.conf-fill{height:100%;border-radius:50px;background:linear-gradient(90deg,var(--g400),var(--g600));transition:width 1.2s cubic-bezier(0.22,1,0.36,1);width:0;}
+.treat-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:12px;}
+.treat-item{display:flex;gap:12px;padding:12px 16px;background:var(--g50);border-left:3px solid var(--g400);border-radius:0 8px 8px 0;font-size:0.88rem;line-height:1.5;animation:slideIn 0.4s ease forwards;opacity:0;}
+@keyframes slideIn{from{opacity:0;transform:translateX(-10px);}to{opacity:1;transform:translateX(0);}}
+.t-num{flex-shrink:0;width:22px;height:22px;background:var(--g600);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;}
+.prev-box{background:linear-gradient(135deg,#fffbeb,#fef9ee);border:1px solid #fcd34d;border-radius:10px;padding:14px 18px;margin-top:12px;font-size:0.88rem;color:#92400e;line-height:1.6;}
+.alt-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px;}
+.alt-item{background:var(--g50);border-radius:10px;padding:12px 16px;}
+.alt-name{font-weight:600;color:var(--td);font-size:0.85rem;margin-bottom:2px;}
+.alt-conf{color:var(--tl);font-size:0.78rem;}
+.desc-box{background:var(--g50);border-radius:10px;padding:16px;font-size:0.88rem;color:var(--tm);line-height:1.7;margin-top:12px;}
+.res-actions{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.ghost-btn{display:inline-flex;align-items:center;gap:8px;background:var(--g50);border:2px solid var(--g300);color:var(--g700);border-radius:50px;padding:10px 20px;font-family:inherit;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.ghost-btn:hover{background:var(--g100);}
 
-    /* =============================================
-       HEADER
-    ============================================= */
-    header {
-      background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 100%);
-      padding: 0;
-      position: relative;
-      overflow: hidden;
-    }
+/* ===== HISTORY PAGE ===== */
+.hist-wrap{padding:100px 40px 60px;max-width:760px;margin:0 auto;}
+.hist-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;}
+.hist-title{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--td);}
+.clear-btn{background:none;border:2px solid #fca5a5;color:#dc2626;border-radius:50px;padding:8px 18px;font-family:inherit;font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.clear-btn:hover{background:#fef2f2;}
+.hist-item{background:var(--white);border-radius:var(--r);border:1px solid var(--g100);padding:20px 24px;margin-bottom:16px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:all 0.2s;}
+.hist-item:hover{border-color:var(--g300);box-shadow:var(--sh);transform:translateX(4px);}
+.hist-plant{font-size:2rem;flex-shrink:0;}
+.hist-info{flex:1;}
+.hist-disease{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--td);margin-bottom:4px;}
+.hist-meta{font-size:0.78rem;color:var(--tl);}
+.hist-badge{padding:4px 12px;border-radius:50px;font-size:0.75rem;font-weight:700;flex-shrink:0;}
+.empty-state{text-align:center;padding:80px 20px;}
+.empty-icon{font-size:4rem;margin-bottom:16px;}
+.empty-title{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--td);margin-bottom:8px;}
+.empty-sub{color:var(--tl);margin-bottom:24px;}
 
-    header::after {
-      content: '';
-      position: absolute;
-      bottom: -2px; left: 0; right: 0;
-      height: 40px;
-      background: var(--cream);
-      clip-path: ellipse(55% 100% at 50% 100%);
-    }
+/* ===== ABOUT PAGE ===== */
+.about-hero-sec{background:linear-gradient(135deg,var(--g800),var(--g900));padding:120px 40px 80px;text-align:center;}
+.about-hero-sec h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,4vw,3rem);font-weight:900;color:var(--white);margin-bottom:16px;}
+.about-hero-sec p{font-size:1rem;color:rgba(255,255,255,0.7);max-width:600px;margin:0 auto;line-height:1.7;}
+.about-wrap{padding:60px 40px;max-width:900px;margin:0 auto;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:60px;}
+.stat-card{background:var(--white);border:1px solid var(--g100);border-radius:var(--r);padding:24px;text-align:center;}
+.stat-big{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--g600);margin-bottom:4px;}
+.tech-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:60px;}
+.tech-card{background:var(--white);border:1px solid var(--g100);border-radius:12px;padding:20px;display:flex;align-items:center;gap:14px;}
+.tech-ico{font-size:1.8rem;flex-shrink:0;}
+.tech-name{font-weight:600;color:var(--td);font-size:0.95rem;margin-bottom:2px;}
+.tech-desc{font-size:0.78rem;color:var(--tl);}
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:60px;}
+.team-card{background:var(--white);border:1px solid var(--g100);border-radius:var(--r);padding:28px;text-align:center;transition:all 0.3s;}
+.team-card:hover{border-color:var(--g300);box-shadow:var(--sh);transform:translateY(-4px);}
+.team-av{width:64px;height:64px;background:linear-gradient(135deg,var(--g400),var(--g600));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 16px;}
+.team-name{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--td);margin-bottom:4px;}
+.team-role{font-size:0.8rem;color:var(--tl);margin-bottom:12px;}
 
-    .header-inner {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 48px 24px 64px;
-      text-align: center;
-      position: relative;
-      z-index: 1;
-    }
+/* ===== FOOTER ===== */
+footer{background:var(--g900);color:rgba(255,255,255,0.6);padding:32px 40px;text-align:center;font-size:0.85rem;}
+footer strong{color:var(--white);}
 
-    .header-badge {
-      display: inline-block;
-      background: rgba(212,160,23,0.2);
-      color: var(--gold-light);
-      border: 1px solid rgba(212,160,23,0.4);
-      border-radius: 50px;
-      padding: 6px 18px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-    }
+/* ===== ANIMATIONS ===== */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+.fade-up{opacity:0;animation:fadeUp 0.7s ease forwards;}
 
-    .header-title {
-      font-family: 'Playfair Display', 'Noto Sans Devanagari', serif;
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      font-weight: 900;
-      color: var(--white);
-      line-height: 1.15;
-      margin-bottom: 8px;
-    }
-
-    .header-subtitle {
-      font-size: 1rem;
-      color: rgba(255,255,255,0.75);
-      font-weight: 300;
-      letter-spacing: 0.02em;
-    }
-
-    /* Language Toggle */
-    .lang-toggle {
-      position: absolute;
-      top: 20px; right: 24px;
-      display: flex;
-      gap: 4px;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 50px;
-      padding: 4px;
-    }
-
-    .lang-btn {
-      background: none;
-      border: none;
-      color: rgba(255,255,255,0.7);
-      font-family: inherit;
-      font-size: 0.8rem;
-      font-weight: 600;
-      padding: 6px 14px;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      letter-spacing: 0.04em;
-    }
-
-    .lang-btn.active {
-      background: var(--gold);
-      color: var(--green-dark);
-    }
-
-    /* =============================================
-       MAIN CONTENT
-    ============================================= */
-    main {
-      padding: 48px 0 80px;
-    }
-
-    /* Upload Card */
-    .card {
-      background: var(--white);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(82,183,136,0.15);
-      overflow: hidden;
-      margin-bottom: 28px;
-      transition: box-shadow 0.3s ease;
-    }
-
-    .card:hover { box-shadow: var(--shadow-hover); }
-
-    .card-header {
-      padding: 20px 28px 16px;
-      border-bottom: 1px solid var(--cream-dark);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .card-icon {
-      width: 40px; height: 40px;
-      background: linear-gradient(135deg, var(--green-light), var(--green-mid));
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.2rem;
-      flex-shrink: 0;
-    }
-
-    .card-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.25rem;
-      color: var(--green-dark);
-      font-weight: 700;
-    }
-
-    .card-body { padding: 28px; }
-
-    /* Drop Zone */
-    .dropzone {
-      border: 2px dashed var(--green-pale);
-      border-radius: var(--radius);
-      padding: 56px 24px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      background: rgba(183,228,199,0.08);
-      position: relative;
-    }
-
-    .dropzone:hover, .dropzone.drag-over {
-      border-color: var(--green-light);
-      background: rgba(82,183,136,0.08);
-      transform: scale(1.01);
-    }
-
-    .dropzone input[type=file] {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
-      opacity: 0; cursor: pointer;
-    }
-
-    .dz-icon {
-      font-size: 3rem;
-      margin-bottom: 16px;
-      animation: float 3s ease-in-out infinite;
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-6px); }
-    }
-
-    .dz-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--green-mid);
-      margin-bottom: 6px;
-    }
-
-    .dz-subtitle {
-      font-size: 0.85rem;
-      color: var(--text-light);
-    }
-
-    /* Image Preview */
-    #preview-area {
-      display: none;
-      margin-top: 20px;
-      border-radius: var(--radius);
-      overflow: hidden;
-      border: 2px solid var(--green-pale);
-      position: relative;
-    }
-
-    #preview-area img {
-      width: 100%;
-      max-height: 320px;
-      object-fit: contain;
-      background: var(--cream-dark);
-      display: block;
-    }
-
-    .preview-remove {
-      position: absolute;
-      top: 10px; right: 10px;
-      background: rgba(0,0,0,0.5);
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 32px; height: 32px;
-      font-size: 1rem;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.2s;
-    }
-
-    .preview-remove:hover { background: rgba(220,38,38,0.8); }
-
-    /* Submit Button */
-    .btn-primary {
-      width: 100%;
-      background: linear-gradient(135deg, var(--green-mid), var(--green-dark));
-      color: var(--white);
-      border: none;
-      border-radius: var(--radius-sm);
-      padding: 16px 24px;
-      font-family: inherit;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      margin-top: 20px;
-      letter-spacing: 0.02em;
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(45,106,79,0.4);
-    }
-
-    .btn-primary:disabled {
-      opacity: 0.5; cursor: not-allowed; transform: none;
-    }
-
-    /* Loading Spinner */
-    .spinner {
-      width: 20px; height: 20px;
-      border: 3px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      display: none;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* =============================================
-       RESULTS SECTION
-    ============================================= */
-    #result-section { display: none; }
-
-    /* Confidence Bar */
-    .confidence-wrap { margin: 16px 0; }
-
-    .confidence-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--text-mid);
-      margin-bottom: 6px;
-    }
-
-    .confidence-bar-bg {
-      background: var(--cream-dark);
-      border-radius: 50px;
-      height: 10px;
-      overflow: hidden;
-    }
-
-    .confidence-bar {
-      height: 100%;
-      border-radius: 50px;
-      background: linear-gradient(90deg, var(--green-light), var(--green-mid));
-      transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
-      width: 0;
-    }
-
-    /* Severity Badge */
-    .severity-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      border-radius: 50px;
-      font-size: 0.82rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    .severity-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: currentColor;
-    }
-
-    /* Treatment List */
-    .treatment-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .treatment-item {
-      display: flex;
-      gap: 12px;
-      padding: 12px 16px;
-      background: linear-gradient(135deg, rgba(82,183,136,0.06), rgba(45,106,79,0.04));
-      border-left: 3px solid var(--green-light);
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      animation: slideIn 0.4s ease forwards;
-      opacity: 0;
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(-12px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-
-    .treatment-num {
-      flex-shrink: 0;
-      width: 22px; height: 22px;
-      background: var(--green-mid);
-      color: #fff;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.72rem;
-      font-weight: 700;
-    }
-
-    /* Alternatives */
-    .alt-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
-      margin-top: 12px;
-    }
-
-    .alt-item {
-      background: var(--cream-dark);
-      border-radius: var(--radius-sm);
-      padding: 12px 16px;
-      font-size: 0.85rem;
-    }
-
-    .alt-name { font-weight: 600; color: var(--text-dark); margin-bottom: 4px; }
-    .alt-conf { color: var(--text-light); font-size: 0.8rem; }
-
-    /* Prevention Box */
-    .prevention-box {
-      background: linear-gradient(135deg, rgba(212,160,23,0.08), rgba(244,197,66,0.05));
-      border: 1px solid rgba(212,160,23,0.25);
-      border-radius: var(--radius-sm);
-      padding: 16px 20px;
-      margin-top: 12px;
-      font-size: 0.9rem;
-      line-height: 1.6;
-      color: var(--text-mid);
-    }
-
-    .prevention-box strong { color: var(--gold); }
-
-    /* Error State */
-    .error-box {
-      background: rgba(220,38,38,0.06);
-      border: 1px solid rgba(220,38,38,0.25);
-      border-radius: var(--radius-sm);
-      padding: 16px 20px;
-      color: #b91c1c;
-      font-size: 0.9rem;
-      display: none;
-      margin-top: 16px;
-    }
-
-    /* =============================================
-       FOOTER
-    ============================================= */
-    footer {
-      text-align: center;
-      padding: 24px;
-      color: var(--text-light);
-      font-size: 0.8rem;
-      border-top: 1px solid var(--cream-dark);
-    }
-
-    footer a { color: var(--green-light); text-decoration: none; }
-
-    /* =============================================
-       ANIMATIONS
-    ============================================= */
-    .fade-in {
-      animation: fadeIn 0.5s ease forwards;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* =============================================
-       RESPONSIVE
-    ============================================= */
-    @media (max-width: 600px) {
-      .card-body { padding: 20px 16px; }
-      .header-inner { padding: 36px 16px 56px; }
-      .alt-grid { grid-template-columns: 1fr; }
-    }
-  </style>
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  .hero{grid-template-columns:1fr;padding:100px 20px 60px;}
+  .hero-visual,.fc1,.fc2{display:none;}
+  .plants-grid,.sel-grid,.features-grid,.steps-grid,.stats-grid,.tech-grid,.team-grid{grid-template-columns:1fr;}
+  nav{padding:0 20px;}
+  .nav-links{display:none;}
+  .section,.page-wrap,.diag-wrap,.hist-wrap,.about-wrap{padding-left:20px;padding-right:20px;}
+  .alt-grid{grid-template-columns:1fr;}
+}
+</style>
 </head>
 <body>
 
-<!-- Background decorative layers -->
-<div class="bg-layer"></div>
-<div class="leaf-deco leaf-tl">
-  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-    <path d="M100 10 C140 10 190 60 190 100 C190 140 140 190 100 190 C60 190 10 140 10 100 C10 60 60 10 100 10Z"/>
-  </svg>
-</div>
-<div class="leaf-deco leaf-br">
-  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-    <path d="M100 10 C140 10 190 60 190 100 C190 140 140 190 100 190 C60 190 10 140 10 100 C10 60 60 10 100 10Z"/>
-  </svg>
-</div>
-
-<!-- HEADER -->
-<header>
-  <div class="header-inner">
-    <!-- Language Toggle -->
-    <div class="lang-toggle">
-      <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
-      <button class="lang-btn" id="btn-hi" onclick="setLang('hi')">हिं</button>
-    </div>
-
-    <div class="header-badge">🌿 AI-Powered Plant Health</div>
-    <h1 class="header-title" id="header-title">Plant Disease Classifier</h1>
-    <p class="header-subtitle" id="header-sub">Upload a leaf image · Get instant diagnosis · Learn treatment</p>
+<!-- Processing Overlay -->
+<div id="proc-overlay">
+  <div class="proc-ring"></div>
+  <div class="proc-title" data-en="Analyzing Your Plant..." data-hi="विश्लेषण हो रहा है...">Analyzing Your Plant...</div>
+  <div style="display:flex;flex-direction:column;gap:8px;align-items:center;">
+    <div class="proc-step" id="ps1"><div class="proc-dot"></div><span data-en="Detecting plant features..." data-hi="पौधे की विशेषताएं पहचान रहे हैं...">Detecting plant features...</span></div>
+    <div class="proc-step" id="ps2"><div class="proc-dot"></div><span data-en="Identifying disease patterns..." data-hi="रोग पैटर्न पहचान रहे हैं...">Identifying disease patterns...</span></div>
+    <div class="proc-step" id="ps3"><div class="proc-dot"></div><span data-en="Generating results..." data-hi="परिणाम तैयार कर रहे हैं...">Generating results...</span></div>
   </div>
-</header>
+</div>
 
-<!-- MAIN -->
-<main>
-  <div class="container">
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-logo" onclick="goTo('home')">
+    <div class="nav-logo-icon">🌿</div>
+    PlantHealth AI
+  </div>
+  <ul class="nav-links">
+    <li><a onclick="goTo('home')" id="nav-home" data-en="Home" data-hi="होम">Home</a></li>
+    <li><a onclick="goTo('select')" id="nav-select" data-en="Diagnose" data-hi="निदान">Diagnose</a></li>
+    <li><a onclick="goTo('history')" id="nav-history" data-en="History" data-hi="इतिहास">History</a></li>
+    <!-- Nav links ke andar, History ke baad add karo -->
+    <li><a onclick="goTo('tracker')" id="nav-tracker" data-en="Tracker" data-hi="ट्रैकर">Tracker</a></li>
+    <li><a onclick="goTo('about')" id="nav-about" data-en="About" data-hi="हमारे बारे में">About</a></li>
+  </ul>
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" id="btn-hi" onclick="setLang('hi')">हिं</button>
+  </div>
+</nav>
+
+<!-- ==================== PAGE: HOME ==================== -->
+<div class="page active" id="page-home">
+  <section class="hero">
+    <div class="hero-text">
+      <div class="hero-badge"><div class="hero-badge-dot"></div><span data-en="AI-Powered Plant Health" data-hi="AI-संचालित पौधा स्वास्थ्य">AI-Powered Plant Health</span></div>
+      <h1 class="hero-title" data-en="Plant Disease <span>Classifier</span>" data-hi="पौधा रोग <span>पहचानकर्ता</span>">Plant Disease <span>Classifier</span></h1>
+      <p class="hero-subtitle" data-en="Detect plant diseases instantly using advanced deep learning. Upload a leaf photo and get accurate diagnosis with treatment recommendations in seconds." data-hi="उन्नत डीप लर्निंग से पौधों की बीमारियां तुरंत पहचानें। पत्ती की फोटो अपलोड करें और सेकंड में उपचार सहित सटीक निदान पाएं।">Detect plant diseases instantly using advanced deep learning. Upload a leaf photo and get accurate diagnosis with treatment recommendations in seconds.</p>
+      <div class="hero-buttons">
+        <button class="btn-primary" onclick="goTo('select')">🔬 <span data-en="Start Diagnosis" data-hi="निदान शुरू करें">Start Diagnosis</span></button>
+        <button class="btn-secondary" onclick="goTo('about')"><span data-en="Learn More →" data-hi="और जानें →">Learn More →</span></button>
+      </div>
+      <div class="hero-stats">
+        <div><div class="stat-num">97.7%</div><div class="stat-label" data-en="Accuracy" data-hi="सटीकता">Accuracy</div></div>
+        <div><div class="stat-num">15</div><div class="stat-label" data-en="Disease Classes" data-hi="रोग वर्ग">Disease Classes</div></div>
+        <div><div class="stat-num">2s</div><div class="stat-label" data-en="Detection Time" data-hi="पहचान समय">Detection Time</div></div>
+        <div><div class="stat-num">3</div><div class="stat-label" data-en="Plants" data-hi="पौधे">Plants</div></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="float-card fc1"><div class="fc-text">✅ <span data-en="Analysis Complete" data-hi="विश्लेषण पूर्ण">Analysis Complete</span></div><div class="fc-sub" data-en="Result in 2 seconds" data-hi="2 सेकंड में परिणाम">Result in 2 seconds</div></div>
+      <div class="hero-card-main">
+        <div class="hero-leaf-img">🍃</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div><div style="font-size:0.75rem;color:var(--tl);margin-bottom:4px;" data-en="Detected Disease" data-hi="पता चला रोग">Detected Disease</div><div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;" data-en="Tomato Late Blight" data-hi="टमाटर पछेती झुलसा">Tomato Late Blight</div></div>
+          <div class="result-badge">⚠ Critical</div>
+        </div>
+        <div style="font-size:0.82rem;color:var(--tl);display:flex;justify-content:space-between;margin-bottom:4px;"><span data-en="Confidence" data-hi="विश्वास">Confidence</span><strong>92%</strong></div>
+        <div class="conf-bar-wrap"><div class="conf-bar-fill"></div></div>
+      </div>
+      <div class="float-card fc2"><div class="fc-text">🌿 <span data-en="3 Plants Supported" data-hi="3 पौधे समर्थित">3 Plants Supported</span></div><div class="fc-sub">Pepper • Potato • Tomato</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="section-label" data-en="Supported Plants" data-hi="समर्थित पौधे">Supported Plants</p>
+    <h2 class="section-title" data-en="Which plants can we diagnose?" data-hi="हम किन पौधों का निदान कर सकते हैं?">Which plants can we diagnose?</h2>
+    <div class="plants-grid">
+      <div class="plant-card" onclick="goTo('select')"><div class="plant-emoji">🥔</div><div class="plant-name" data-en="Potato" data-hi="आलू">Potato</div><div class="plant-latin">Solanum tuberosum</div><div class="plant-tag">🦠 <span data-en="3 diseases" data-hi="3 रोग">3 diseases</span></div></div>
+      <div class="plant-card" onclick="goTo('select')"><div class="plant-emoji">🍅</div><div class="plant-name" data-en="Tomato" data-hi="टमाटर">Tomato</div><div class="plant-latin">Solanum lycopersicum</div><div class="plant-tag">🦠 <span data-en="10 diseases" data-hi="10 रोग">10 diseases</span></div></div>
+      <div class="plant-card" onclick="goTo('select')"><div class="plant-emoji">🌶</div><div class="plant-name" data-en="Bell Pepper" data-hi="शिमला मिर्च">Bell Pepper</div><div class="plant-latin">Capsicum annuum</div><div class="plant-tag">🦠 <span data-en="2 diseases" data-hi="2 रोग">2 diseases</span></div></div>
+    </div>
+  </section>
+
+  <div class="features-bg">
+    <div class="features-inner">
+      <p class="section-label" data-en="Why Choose Us" data-hi="हमें क्यों चुनें">Why Choose Us</p>
+      <h2 class="section-title" data-en="Built for farmers, powered by AI" data-hi="किसानों के लिए बनाया, AI द्वारा संचालित">Built for farmers, powered by AI</h2>
+      <div class="features-grid">
+        <div class="feature-card"><div class="feature-icon">⚡</div><div class="feature-title" data-en="Fast & Accurate" data-hi="तेज़ और सटीक">Fast & Accurate</div><div class="feature-desc" data-en="Results in 2 seconds with 97.7% accuracy." data-hi="97.7% सटीकता के साथ 2 सेकंड में परिणाम।">Results in 2 seconds with 97.7% accuracy.</div></div>
+        <div class="feature-card"><div class="feature-icon">💊</div><div class="feature-title" data-en="Treatment Tips" data-hi="उपचार सुझाव">Treatment Tips</div><div class="feature-desc" data-en="Detailed treatment and prevention for every disease." data-hi="हर रोग के लिए विस्तृत उपचार और रोकथाम।">Detailed treatment and prevention for every disease.</div></div>
+        <div class="feature-card"><div class="feature-icon">🌐</div><div class="feature-title" data-en="Hindi Support" data-hi="हिंदी समर्थन">Hindi Support</div><div class="feature-desc" data-en="Full English and Hindi for every Indian farmer." data-hi="हर भारतीय किसान के लिए अंग्रेजी और हिंदी।">Full English and Hindi for every Indian farmer.</div></div>
+        <div class="feature-card"><div class="feature-icon">📱</div><div class="feature-title" data-en="Easy to Use" data-hi="उपयोग में आसान">Easy to Use</div><div class="feature-desc" data-en="Simple drag-and-drop. No technical knowledge needed." data-hi="सरल ड्रैग-एंड-ड्रॉप। कोई तकनीकी ज्ञान नहीं।">Simple drag-and-drop. No technical knowledge needed.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="section">
+    <p class="section-label" data-en="How It Works" data-hi="यह कैसे काम करता है">How It Works</p>
+    <h2 class="section-title" data-en="4 simple steps to diagnosis" data-hi="निदान के 4 सरल चरण">4 simple steps to diagnosis</h2>
+    <div class="steps-grid">
+      <div class="step-card"><div class="step-num">1</div><div class="step-title" data-en="Select Plant" data-hi="पौधा चुनें">Select Plant</div><div class="step-desc" data-en="Choose Potato, Tomato or Pepper." data-hi="आलू, टमाटर या मिर्च चुनें।">Choose Potato, Tomato or Pepper.</div></div>
+      <div class="step-card"><div class="step-num">2</div><div class="step-title" data-en="Upload Leaf" data-hi="पत्ती अपलोड करें">Upload Leaf</div><div class="step-desc" data-en="Take a clear photo and upload." data-hi="स्पष्ट फोटो लें और अपलोड करें।">Take a clear photo and upload.</div></div>
+      <div class="step-card"><div class="step-num">3</div><div class="step-title" data-en="AI Analysis" data-hi="AI विश्लेषण">AI Analysis</div><div class="step-desc" data-en="MobileNetV2 analyzes in 2 seconds." data-hi="MobileNetV2 2 सेकंड में विश्लेषण।">MobileNetV2 analyzes in 2 seconds.</div></div>
+      <div class="step-card"><div class="step-num">4</div><div class="step-title" data-en="Get Results" data-hi="परिणाम पाएं">Get Results</div><div class="step-desc" data-en="Full diagnosis with treatment steps." data-hi="उपचार चरणों के साथ पूर्ण निदान।">Full diagnosis with treatment steps.</div></div>
+    </div>
+  </section>
+
+  <div class="cta-section">
+    <h2 class="cta-title" data-en="Ready to diagnose your plant?" data-hi="पौधे का निदान करने के लिए तैयार?">Ready to diagnose your plant?</h2>
+    <p class="cta-sub" data-en="Free, fast, and accurate." data-hi="मुफ़्त, तेज़ और सटीक।">Free, fast, and accurate.</p>
+    <button class="btn-primary" onclick="goTo('select')" style="font-size:1rem;padding:16px 36px;">🔬 <span data-en="Start Free Diagnosis" data-hi="मुफ़्त निदान शुरू करें">Start Free Diagnosis</span></button>
+  </div>
+  <footer><p><strong>PlantHealth AI</strong> &bull; TensorFlow + Flask + MobileNetV2 &bull; B.Tech AI &amp; Data Science</p><p style="margin-top:8px;opacity:0.5;font-size:0.78rem;">Made with ❤ for Indian farmers.</p></footer>
+</div>
+
+<!-- ==================== PAGE: SELECT ==================== -->
+<div class="page" id="page-select">
+  <div class="page-wrap">
+    <button class="back-btn" onclick="goTo('home')">← <span data-en="Back" data-hi="वापस">Back</span></button>
+    <h1 class="page-title" data-en="Select Your Plant 🌿" data-hi="अपना पौधा चुनें 🌿">Select Your Plant 🌿</h1>
+    <p class="page-sub" data-en="Choose the plant type for better accuracy in disease detection" data-hi="रोग पहचान में बेहतर सटीकता के लिए पौधा प्रकार चुनें">Choose the plant type for better accuracy in disease detection</p>
+    <div class="sel-grid">
+      <div class="sel-card" onclick="selectPlant('potato',this)" id="sc-potato"><div class="sel-emoji">🥔</div><div class="sel-name" data-en="Potato" data-hi="आलू">Potato</div><div class="sel-latin">Solanum tuberosum</div><div class="sel-tag">🦠 <span data-en="3 diseases" data-hi="3 रोग">3 diseases</span></div></div>
+      <div class="sel-card" onclick="selectPlant('tomato',this)" id="sc-tomato"><div class="sel-emoji">🍅</div><div class="sel-name" data-en="Tomato" data-hi="टमाटर">Tomato</div><div class="sel-latin">Solanum lycopersicum</div><div class="sel-tag">🦠 <span data-en="10 diseases" data-hi="10 रोग">10 diseases</span></div></div>
+      <div class="sel-card" onclick="selectPlant('pepper',this)" id="sc-pepper"><div class="sel-emoji">🌶</div><div class="sel-name" data-en="Bell Pepper" data-hi="शिमला मिर्च">Bell Pepper</div><div class="sel-latin">Capsicum annuum</div><div class="sel-tag">🦠 <span data-en="2 diseases" data-hi="2 रोग">2 diseases</span></div></div>
+    </div>
+    <div class="info-box">💡 <span data-en="Select the correct plant type for better accuracy in disease detection." data-hi="रोग पहचान में बेहतर सटीकता के लिए सही पौधा प्रकार चुनें।">Select the correct plant type for better accuracy in disease detection.</span></div>
+    <button class="btn-next" id="btn-next" onclick="goTo('diagnose')"><span data-en="Next: Upload Image →" data-hi="अगला: छवि अपलोड करें →">Next: Upload Image →</span></button>
+  </div>
+</div>
+
+<!-- ==================== PAGE: DIAGNOSE ==================== -->
+<div class="page" id="page-diagnose">
+  <div class="diag-wrap">
+    <button class="back-btn" onclick="goTo('select')">← <span data-en="Back" data-hi="वापस">Back</span></button>
 
     <!-- Upload Card -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-icon">📸</div>
-        <h2 class="card-title" id="upload-title">Upload Leaf Image</h2>
+    <div class="card" id="upload-card">
+      <div class="card-hdr">
+        <div class="card-ttl"><div class="card-ico">📸</div><span data-en="Upload Leaf Image" data-hi="पत्ती की छवि अपलोड करें">Upload Leaf Image</span></div>
+        <div class="plant-badge" id="plant-badge">🌿 All Plants</div>
       </div>
       <div class="card-body">
-
-        <div class="dropzone" id="dropzone"
-             ondragover="handleDragOver(event)"
-             ondragleave="handleDragLeave(event)"
-             ondrop="handleDrop(event)">
-          <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)" />
+        <div class="dropzone" id="dropzone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave()" ondrop="handleDrop(event)">
+          <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)"/>
           <div class="dz-icon">🌿</div>
-          <p class="dz-title" id="dz-title">Drop your leaf image here</p>
-          <p class="dz-subtitle" id="dz-sub">or click to browse · JPG, PNG, WEBP · Max 10MB</p>
+          <p class="dz-title" data-en="Drop your leaf image here" data-hi="यहाँ पत्ती की छवि छोड़ें">Drop your leaf image here</p>
+          <p class="dz-sub" data-en="or click to browse · JPG, PNG, WEBP · Max 10MB" data-hi="या ब्राउज़ करें · JPG, PNG, WEBP · अधिकतम 10MB">or click to browse · JPG, PNG, WEBP · Max 10MB</p>
         </div>
-
-        <!-- Preview -->
         <div id="preview-area">
-          <img id="preview-img" src="" alt="Preview" />
-          <button class="preview-remove" onclick="clearImage()" title="Remove image">✕</button>
+          <img id="preview-img" src="" alt="Preview"/>
+          <button class="preview-rm" onclick="clearImage()">✕</button>
         </div>
-
-        <!-- Error -->
-        <div class="error-box" id="error-box">⚠️ <span id="error-msg"></span></div>
-
-        <!-- Submit -->
-        <button class="btn-primary" id="analyze-btn" onclick="analyzeImage()" disabled>
+        <div class="tip-box">💡 <span data-en="Use a clear image with good lighting for best results." data-hi="सर्वोत्तम परिणाम के लिए अच्छी रोशनी वाली स्पष्ट छवि का उपयोग करें।">Use a clear image with good lighting for best results.</span></div>
+        <div class="err-box" id="err-box">⚠️ <span id="err-msg"></span></div>
+        <button class="btn-analyze" id="analyze-btn" onclick="analyzeImage()" disabled>
           <div class="spinner" id="spinner"></div>
-          <span id="btn-text">🔍 Analyze Plant</span>
+          <span id="btn-txt" data-en="🔍 Analyze Plant" data-hi="🔍 पौधे का विश्लेषण करें">🔍 Analyze Plant</span>
         </button>
-
       </div>
     </div>
 
-    <!-- Result Section -->
-    <div id="result-section">
+    <!-- Results -->
+    <div id="result-section" style="display:none;">
+      <div class="res-actions">
+        <button class="ghost-btn" onclick="newAnalysis()">← <span data-en="New Analysis" data-hi="नया विश्लेषण">New Analysis</span></button>
+        <button class="ghost-btn" onclick="saveNow()" style="background:var(--g600);color:#fff;border-color:var(--g600);">💾 <span data-en="Save" data-hi="सहेजें">Save</span></button>
+      </div>
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-ttl"><div class="card-ico">🩺</div><span data-en="Diagnosis Result" data-hi="निदान परिणाम">Diagnosis Result</span></div>
+          <span class="sev-badge" id="sev-badge">—</span>
+        </div>
+        <div class="card-body">
+          <p style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--tl);margin-bottom:6px;" data-en="Detected Disease" data-hi="पता चला रोग">Detected Disease</p>
+          <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--td);" id="dis-name">—</h2>
+          <div class="conf-wrap">
+            <div class="conf-lbl"><span data-en="Model Confidence" data-hi="मॉडल विश्वसनीयता">Model Confidence</span><strong id="conf-pct">—</strong></div>
+            <div class="conf-bg"><div class="conf-fill" id="conf-fill"></div></div>
+          </div>
+          <div class="desc-box" id="dis-desc">—</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-ttl"><div class="card-ico">💊</div><span data-en="Treatment Recommendations" data-hi="उपचार सिफारिशें">Treatment Recommendations</span></div></div>
+        <div class="card-body">
+          <ul class="treat-list" id="treat-list"></ul>
+          <div class="prev-box" id="prev-box" style="display:none;">🛡️ <strong data-en="Prevention: " data-hi="रोकथाम: ">Prevention: </strong><span id="prev-txt"></span></div>
+        </div>
+      </div>
+      <div class="card" id="alt-card" style="display:none;">
+        <div class="card-hdr"><div class="card-ttl"><div class="card-ico">📊</div><span data-en="Other Possibilities" data-hi="अन्य संभावनाएं">Other Possibilities</span></div></div>
+        <div class="card-body"><div class="alt-grid" id="alt-grid"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
 
-      <!-- Main Diagnosis -->
-      <div class="card fade-in" id="diagnosis-card">
-        <div class="card-header">
-          <div class="card-icon">🩺</div>
-          <h2 class="card-title" id="res-title">Diagnosis Result</h2>
+<!-- ==================== PAGE: HISTORY ==================== -->
+<div class="page" id="page-history">
+  <div class="hist-wrap">
+    <div class="hist-hdr">
+      <h1 class="hist-title" data-en="Scan History 📋" data-hi="स्कैन इतिहास 📋">Scan History 📋</h1>
+      <button class="clear-btn" onclick="clearHistory()" data-en="Clear All" data-hi="सब साफ़ करें">Clear All</button>
+    </div>
+    <div id="hist-container"></div>
+  </div>
+</div>
+</div>
+<!-- ==================== PAGE: TRACKER ==================== -->
+<!-- Add this page div in index.html after page-history div -->
+<!-- Also add nav link: <li><a onclick="goTo('tracker')" id="nav-tracker">Tracker</a></li> -->
+
+<div class="page" id="page-tracker">
+  <div class="diag-wrap">
+    <button class="back-btn" onclick="goTo('home')">← <span data-en="Back" data-hi="वापस">Back</span></button>
+
+    <!-- Header -->
+    <div style="text-align:center;margin-bottom:32px;">
+      <h1 style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--td);margin-bottom:8px;" data-en="Treatment Progress Tracker 🌱" data-hi="उपचार प्रगति ट्रैकर 🌱">Treatment Progress Tracker 🌱</h1>
+      <p style="color:var(--tl);font-size:0.95rem;" data-en="Upload before & after photos to track your treatment progress" data-hi="उपचार की प्रगति ट्रैक करने के लिए पहले और बाद की तस्वीरें अपलोड करें">Upload before & after photos to track your treatment progress</p>
+    </div>
+
+    <!-- Two upload boxes -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+
+      <!-- BEFORE -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-ttl">
+            <div class="card-ico" style="background:linear-gradient(135deg,#f97316,#dc2626);">📷</div>
+            <span data-en="Before Treatment" data-hi="उपचार से पहले">Before Treatment</span>
+          </div>
+          <span style="background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:50px;padding:4px 12px;font-size:0.75rem;font-weight:700;" data-en="Day 0" data-hi="दिन 0">Day 0</span>
+        </div>
+        <div class="card-body" style="padding:20px;">
+          <div id="before-dropzone" style="border:2px dashed #f97316;border-radius:12px;padding:32px 16px;text-align:center;cursor:pointer;background:#fff7ed;position:relative;transition:all 0.3s;">
+            <input type="file" id="before-input" accept="image/*" onchange="loadBeforeFile(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;"/>
+            <div style="font-size:2rem;margin-bottom:8px;">🍂</div>
+            <p style="font-size:0.85rem;font-weight:600;color:#ea580c;margin-bottom:4px;" data-en="Upload sick leaf photo" data-hi="बीमार पत्ती की फोटो अपलोड करें">Upload sick leaf photo</p>
+            <p style="font-size:0.75rem;color:var(--tl);">JPG, PNG, WEBP</p>
+          </div>
+          <div id="before-preview" style="display:none;margin-top:12px;position:relative;">
+            <img id="before-img" style="width:100%;max-height:180px;object-fit:contain;border-radius:10px;background:var(--g50);border:2px solid #fed7aa;"/>
+            <button onclick="clearBefore()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:0.8rem;">✕</button>
+          </div>
+          <div id="before-result" style="display:none;margin-top:12px;padding:12px;background:#fef2f2;border-radius:10px;border-left:3px solid #dc2626;">
+            <p style="font-size:0.75rem;color:var(--tl);margin-bottom:2px;" data-en="Detected" data-hi="पता चला">Detected</p>
+            <p style="font-weight:700;color:var(--td);font-size:0.9rem;" id="before-disease">—</p>
+            <p style="font-size:0.8rem;color:#dc2626;margin-top:4px;" id="before-conf">—</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- AFTER -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-ttl">
+            <div class="card-ico" style="background:linear-gradient(135deg,#22c55e,#16a34a);">📷</div>
+            <span data-en="After Treatment" data-hi="उपचार के बाद">After Treatment</span>
+          </div>
+          <span style="background:var(--g50);color:var(--g700);border:1px solid var(--g100);border-radius:50px;padding:4px 12px;font-size:0.75rem;font-weight:700;" data-en="Day 7+" data-hi="दिन 7+">Day 7+</span>
+        </div>
+        <div class="card-body" style="padding:20px;">
+          <div id="after-dropzone" style="border:2px dashed var(--g300);border-radius:12px;padding:32px 16px;text-align:center;cursor:pointer;background:var(--g50);position:relative;transition:all 0.3s;">
+            <input type="file" id="after-input" accept="image/*" onchange="loadAfterFile(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;"/>
+            <div style="font-size:2rem;margin-bottom:8px;">🌿</div>
+            <p style="font-size:0.85rem;font-weight:600;color:var(--g600);margin-bottom:4px;" data-en="Upload treated leaf photo" data-hi="उपचारित पत्ती की फोटो अपलोड करें">Upload treated leaf photo</p>
+            <p style="font-size:0.75rem;color:var(--tl);">JPG, PNG, WEBP</p>
+          </div>
+          <div id="after-preview" style="display:none;margin-top:12px;position:relative;">
+            <img id="after-img" style="width:100%;max-height:180px;object-fit:contain;border-radius:10px;background:var(--g50);border:2px solid var(--g300);"/>
+            <button onclick="clearAfter()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:0.8rem;">✕</button>
+          </div>
+          <div id="after-result" style="display:none;margin-top:12px;padding:12px;background:var(--g50);border-radius:10px;border-left:3px solid var(--g500);">
+            <p style="font-size:0.75rem;color:var(--tl);margin-bottom:2px;" data-en="Detected" data-hi="पता चला">Detected</p>
+            <p style="font-weight:700;color:var(--td);font-size:0.9rem;" id="after-disease">—</p>
+            <p style="font-size:0.8rem;color:var(--g600);margin-top:4px;" id="after-conf">—</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analyze Button -->
+    <button id="compare-btn" onclick="compareResults()" disabled
+      style="width:100%;background:linear-gradient(135deg,var(--g500),var(--g700));color:#fff;border:none;border-radius:50px;padding:16px;font-family:inherit;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;opacity:0.45;margin-bottom:24px;">
+      🔬 <span data-en="Compare & Analyze Progress" data-hi="तुलना करें और प्रगति विश्लेषण करें">Compare & Analyze Progress</span>
+    </button>
+
+    <!-- Tracker Error -->
+    <div id="tracker-err" style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:14px 18px;color:#dc2626;font-size:0.88rem;margin-bottom:16px;">
+      ⚠️ <span id="tracker-err-msg"></span>
+    </div>
+
+    <!-- Results Section -->
+    <div id="tracker-result" style="display:none;">
+
+      <!-- Progress Card -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-ttl">
+            <div class="card-ico">📊</div>
+            <span data-en="Treatment Progress Report" data-hi="उपचार प्रगति रिपोर्ट">Treatment Progress Report</span>
+          </div>
         </div>
         <div class="card-body">
 
-          <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+          <!-- Status Badge -->
+          <div style="text-align:center;margin-bottom:24px;">
+            <div id="recovery-icon" style="font-size:3rem;margin-bottom:8px;">🌱</div>
+            <h2 id="recovery-title" style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin-bottom:8px;">—</h2>
+            <p id="recovery-sub" style="color:var(--tl);font-size:0.9rem;">—</p>
+          </div>
+
+          <!-- Before After Confidence Bars -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
             <div>
-              <p style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-light); margin-bottom:6px;" id="detected-label">Detected Disease</p>
-              <h3 style="font-family:'Playfair Display',serif; font-size:1.6rem; color:var(--green-dark); line-height:1.2;" id="disease-name">—</h3>
+              <p style="font-size:0.8rem;font-weight:600;color:#dc2626;margin-bottom:6px;" data-en="Before — Disease Confidence" data-hi="पहले — रोग विश्वसनीयता">Before — Disease Confidence</p>
+              <div style="background:#fee2e2;border-radius:50px;height:12px;overflow:hidden;">
+                <div id="before-bar" style="height:100%;background:linear-gradient(90deg,#f97316,#dc2626);border-radius:50px;transition:width 1.2s ease;width:0%;"></div>
+              </div>
+              <p id="before-pct" style="font-size:0.85rem;font-weight:700;color:#dc2626;margin-top:4px;">0%</p>
             </div>
-            <span class="severity-badge" id="severity-badge">
-              <span class="severity-dot"></span>
-              <span id="severity-text">—</span>
-            </span>
-          </div>
-
-          <!-- Confidence Bar -->
-          <div class="confidence-wrap">
-            <div class="confidence-label">
-              <span id="confidence-label">Model Confidence</span>
-              <strong id="confidence-pct">—</strong>
-            </div>
-            <div class="confidence-bar-bg">
-              <div class="confidence-bar" id="confidence-bar"></div>
+            <div>
+              <p style="font-size:0.8rem;font-weight:600;color:var(--g600);margin-bottom:6px;" data-en="After — Disease Confidence" data-hi="बाद — रोग विश्वसनीयता">After — Disease Confidence</p>
+              <div style="background:var(--g100);border-radius:50px;height:12px;overflow:hidden;">
+                <div id="after-bar" style="height:100%;background:linear-gradient(90deg,var(--g400),var(--g600));border-radius:50px;transition:width 1.2s ease;width:0%;"></div>
+              </div>
+              <p id="after-pct" style="font-size:0.85rem;font-weight:700;color:var(--g600);margin-top:4px;">0%</p>
             </div>
           </div>
 
-          <!-- Description -->
-          <p style="font-size:0.9rem; line-height:1.7; color:var(--text-mid); margin-top:16px; padding:16px; background:var(--cream-dark); border-radius:var(--radius-sm);" id="disease-desc">—</p>
+          <!-- Improvement Score -->
+          <div style="background:linear-gradient(135deg,var(--g50),#fff);border:1px solid var(--g100);border-radius:12px;padding:20px;text-align:center;margin-bottom:20px;">
+            <p style="font-size:0.8rem;color:var(--tl);margin-bottom:4px;" data-en="Overall Improvement" data-hi="कुल सुधार">Overall Improvement</p>
+            <p id="improvement-score" style="font-family:'Playfair Display',serif;font-size:3rem;font-weight:700;color:var(--g600);line-height:1;">+0%</p>
+            <p style="font-size:0.78rem;color:var(--tl);margin-top:4px;" data-en="reduction in disease confidence" data-hi="रोग विश्वसनीयता में कमी">reduction in disease confidence</p>
+          </div>
 
+          <!-- Recommendation -->
+          <div id="recommendation-box" style="border-radius:12px;padding:16px 20px;display:flex;gap:12px;align-items:flex-start;">
+            <span id="rec-icon" style="font-size:1.5rem;flex-shrink:0;">💡</span>
+            <div>
+              <p style="font-weight:600;color:var(--td);margin-bottom:4px;" id="rec-title">—</p>
+              <p style="font-size:0.85rem;color:var(--tm);line-height:1.6;" id="rec-text">—</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Treatment Card -->
-      <div class="card fade-in" id="treatment-card" style="animation-delay:0.1s;">
-        <div class="card-header">
-          <div class="card-icon">💊</div>
-          <h2 class="card-title" id="treatment-title">Treatment Recommendations</h2>
+      <!-- Timeline Card -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-ttl">
+            <div class="card-ico">📅</div>
+            <span data-en="Treatment Timeline" data-hi="उपचार समयरेखा">Treatment Timeline</span>
+          </div>
         </div>
         <div class="card-body">
-          <ul class="treatment-list" id="treatment-list"></ul>
-
-          <div class="prevention-box" id="prevention-box" style="display:none;">
-            <strong id="prevention-label">🛡️ Prevention: </strong>
-            <span id="prevention-text"></span>
-          </div>
+          <div id="timeline-container" style="display:flex;flex-direction:column;gap:0;"></div>
         </div>
       </div>
 
-      <!-- Alternatives Card -->
-      <div class="card fade-in" id="alt-card" style="animation-delay:0.2s; display:none;">
-        <div class="card-header">
-          <div class="card-icon">📊</div>
-          <h2 class="card-title" id="alt-title">Other Possibilities</h2>
-        </div>
-        <div class="card-body">
-          <div class="alt-grid" id="alt-grid"></div>
-        </div>
-      </div>
+    </div>
+  </div>
+</div>
 
-    </div><!-- /result-section -->
 
-  </div><!-- /container -->
-</main>
 
-<footer>
-  <p>Plant Disease Classifier &bull; Built with TensorFlow + Flask &bull;
-     <a href="/health" target="_blank">API Health</a> &bull;
-     <a href="/classes" target="_blank">Supported Classes</a>
-  </p>
-  <p style="margin-top:6px;">B.Tech AI & Data Science Project</p>
-</footer>
+<!-- ==================== PAGE: ABOUT ==================== -->
+<div class="page" id="page-about">
+  <div class="about-hero-sec">
+    <h1 data-en="About PlantHealth AI" data-hi="PlantHealth AI के बारे में">About PlantHealth AI</h1>
+    <p data-en="A B.Tech AI & Data Science project helping Indian farmers detect plant diseases instantly using deep learning." data-hi="एक B.Tech AI और Data Science प्रोजेक्ट जो डीप लर्निंग से भारतीय किसानों की मदद करता है।">A B.Tech AI & Data Science project helping Indian farmers detect plant diseases instantly using deep learning.</p>
+  </div>
+  <div class="about-wrap">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-big">97.7%</div><div class="stat-label" data-en="Model Accuracy" data-hi="मॉडल सटीकता">Model Accuracy</div></div>
+      <div class="stat-card"><div class="stat-big">20K+</div><div class="stat-label" data-en="Training Images" data-hi="प्रशिक्षण छवियां">Training Images</div></div>
+      <div class="stat-card"><div class="stat-big">15</div><div class="stat-label" data-en="Disease Classes" data-hi="रोग वर्ग">Disease Classes</div></div>
+      <div class="stat-card"><div class="stat-big">2s</div><div class="stat-label" data-en="Detection Speed" data-hi="पहचान गति">Detection Speed</div></div>
+    </div>
+    <h2 class="section-title" data-en="🛠 Tech Stack" data-hi="🛠 तकनीक">🛠 Tech Stack</h2>
+    <div class="tech-grid">
+      <div class="tech-card"><div class="tech-ico">🧠</div><div><div class="tech-name">TensorFlow + Keras</div><div class="tech-desc" data-en="Deep learning framework" data-hi="डीप लर्निंग फ्रेमवर्क">Deep learning framework</div></div></div>
+      <div class="tech-card"><div class="tech-ico">📱</div><div><div class="tech-name">MobileNetV2</div><div class="tech-desc" data-en="Transfer learning model" data-hi="ट्रांसफर लर्निंग मॉडल">Transfer learning model</div></div></div>
+      <div class="tech-card"><div class="tech-ico">⚡</div><div><div class="tech-name">ONNX Runtime</div><div class="tech-desc" data-en="Lightweight inference" data-hi="हल्का अनुमान">Lightweight inference</div></div></div>
+      <div class="tech-card"><div class="tech-ico">🌐</div><div><div class="tech-name">Flask</div><div class="tech-desc" data-en="Python web backend" data-hi="Python वेब बैकएंड">Python web backend</div></div></div>
+      <div class="tech-card"><div class="tech-ico">🎨</div><div><div class="tech-name">HTML + CSS + JS</div><div class="tech-desc" data-en="Frontend interface" data-hi="फ्रंटएंड इंटरफेस">Frontend interface</div></div></div>
+      <div class="tech-card"><div class="tech-ico">☁️</div><div><div class="tech-name">Google Colab GPU</div><div class="tech-desc" data-en="T4 GPU training" data-hi="T4 GPU प्रशिक्षण">T4 GPU training</div></div></div>
+    </div>
+    <h2 class="section-title" data-en="👥 Our Team" data-hi="👥 हमारी टीम">👥 Our Team</h2>
+    <div class="team-grid">
+      <div class="team-card"><div class="team-av">👩</div><div class="team-name">Priya Sandhya</div><div class="team-role" data-en="Team Lead · ML Engineer" data-hi="टीम लीड · ML इंजीनियर">Team Lead · ML Engineer</div></div>
+      <div class="team-card"><div class="team-av">👩</div><div class="team-name">Aishwary</div><div class="team-role" data-en="Backend Developer" data-hi="बैकएंड डेवलपर">Backend Developer</div></div>
+      <div class="team-card"><div class="team-av">👩</div><div class="team-name">Anshika Jain</div><div class="team-role" data-en="Frontend Developer" data-hi="फ्रंटएंड डेवलपर">Frontend Developer</div></div>
+      <div class="team-card"><div class="team-av">👩</div><div class="team-name">Nilima Jhapate</div><div class="team-role" data-en="Data Scientist" data-hi="डेटा वैज्ञानिक">Data Scientist</div></div>
+      <div class="team-card"><div class="team-av">👩</div><div class="team-name">Rajshree</div><div class="team-role" data-en="UI/UX Designer" data-hi="UI/UX डिज़ाइनर">UI/UX Designer</div></div>
+      <div class="team-card" style="background:var(--g50);border-color:var(--g100);"><div class="team-av" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);">🌿</div><div class="team-name" style="color:var(--g700);">B.Tech AI & DS</div><div class="team-role">Department 2024–2026</div></div>
+    </div>
+  </div>
+  <footer><p><strong>PlantHealth AI</strong> &bull; B.Tech AI &amp; Data Science &bull; 2026</p><p style="margin-top:8px;opacity:0.5;font-size:0.78rem;">Made with ❤ for Indian farmers.</p></footer>
+</div>
 
 <script>
-// =============================================
-// STATE
-// =============================================
-let currentLang = 'en';
-let selectedFile = null;
+// ==================== ROUTER ====================
+let currentPage='home';
+let selectedPlant=null;
+let currentLang='en';
 
-// =============================================
-// TRANSLATIONS
-// =============================================
-const t = {
-  en: {
-    headerTitle:     'Plant Disease Classifier',
-    headerSub:       'Upload a leaf image · Get instant diagnosis · Learn treatment',
-    uploadTitle:     'Upload Leaf Image',
-    dzTitle:         'Drop your leaf image here',
-    dzSub:           'or click to browse · JPG, PNG, WEBP · Max 10MB',
-    btnText:         '🔍 Analyze Plant',
-    btnLoading:      'Analyzing...',
-    resTitle:        'Diagnosis Result',
-    detectedLabel:   'Detected Disease',
-    confidenceLabel: 'Model Confidence',
-    treatmentTitle:  'Treatment Recommendations',
-    preventionLabel: '🛡️ Prevention: ',
-    altTitle:        'Other Possibilities',
-  },
-  hi: {
-    headerTitle:     'पौधा रोग पहचानकर्ता',
-    headerSub:       'पत्ती की फोटो अपलोड करें · तुरंत निदान पाएं · उपचार जानें',
-    uploadTitle:     'पत्ती की तस्वीर अपलोड करें',
-    dzTitle:         'अपनी पत्ती की तस्वीर यहाँ खींचें',
-    dzSub:           'या ब्राउज़ करने के लिए क्लिक करें · JPG, PNG, WEBP · अधिकतम 10MB',
-    btnText:         '🔍 पौधे का विश्लेषण करें',
-    btnLoading:      'विश्लेषण हो रहा है...',
-    resTitle:        'निदान परिणाम',
-    detectedLabel:   'पता चला रोग',
-    confidenceLabel: 'मॉडल की विश्वसनीयता',
-    treatmentTitle:  'उपचार की सिफारिशें',
-    preventionLabel: '🛡️ बचाव: ',
-    altTitle:        'अन्य संभावनाएं',
-  }
-};
-
-function setLang(lang) {
-  currentLang = lang;
-  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
-  document.getElementById('btn-hi').classList.toggle('active', lang === 'hi');
-
-  const tx = t[lang];
-  document.getElementById('header-title').textContent    = tx.headerTitle;
-  document.getElementById('header-sub').textContent      = tx.headerSub;
-  document.getElementById('upload-title').textContent    = tx.uploadTitle;
-  document.getElementById('dz-title').textContent        = tx.dzTitle;
-  document.getElementById('dz-sub').textContent          = tx.dzSub;
-  document.getElementById('btn-text').textContent        = tx.btnText;
-  document.getElementById('res-title').textContent       = tx.resTitle;
-  document.getElementById('detected-label').textContent  = tx.detectedLabel;
-  document.getElementById('confidence-label').textContent = tx.confidenceLabel;
-  document.getElementById('treatment-title').textContent = tx.treatmentTitle;
-  document.getElementById('prevention-label').textContent = tx.preventionLabel;
-  document.getElementById('alt-title').textContent       = tx.altTitle;
-
-  // Re-analyze with new language if we have a file
-  if (selectedFile) analyzeImage();
+function goTo(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
+  const navEl=document.getElementById('nav-'+page);
+  if(navEl)navEl.classList.add('active');
+  currentPage=page;
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(page==='history')loadHistory();
+  history.pushState({page},'',(page==='home'?'/':'/'+page));
 }
 
-// =============================================
-// FILE HANDLING
-// =============================================
-function handleFileSelect(event) {
-  const file = event.target.files[0];
-  if (file) loadFile(file);
+window.addEventListener('popstate',(e)=>{
+  if(e.state&&e.state.page)goTo(e.state.page);
+});
+
+// ==================== PLANT SELECTION ====================
+function selectPlant(plant,el){
+  selectedPlant=plant;
+  document.querySelectorAll('.sel-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('btn-next').classList.add('ready');
+  const names={potato:'🥔 Potato',tomato:'🍅 Tomato',pepper:'🌶 Bell Pepper'};
+  document.getElementById('plant-badge').textContent=names[plant];
 }
 
-function handleDragOver(e) {
-  e.preventDefault();
-  document.getElementById('dropzone').classList.add('drag-over');
+// ==================== FILE HANDLING ====================
+function handleFile(e){loadFile(e.target.files[0]);}
+function handleDragOver(e){e.preventDefault();document.getElementById('dropzone').classList.add('drag-over');}
+function handleDragLeave(){document.getElementById('dropzone').classList.remove('drag-over');}
+function handleDrop(e){e.preventDefault();document.getElementById('dropzone').classList.remove('drag-over');loadFile(e.dataTransfer.files[0]);}
+
+function loadFile(file){
+  if(!file)return;
+  if(file.size>10*1024*1024){showErr('File too large. Max 10MB.');return;}
+  hideErr();
+  document.getElementById('result-section').style.display='none';
+  const r=new FileReader();
+  r.onload=e=>{document.getElementById('preview-img').src=e.target.result;document.getElementById('preview-area').style.display='block';};
+  r.readAsDataURL(file);
+  document.getElementById('analyze-btn').disabled=false;
+  window._file=file;
 }
 
-function handleDragLeave() {
-  document.getElementById('dropzone').classList.remove('drag-over');
+function clearImage(){
+  window._file=null;
+  document.getElementById('preview-area').style.display='none';
+  document.getElementById('preview-img').src='';
+  document.getElementById('fileInput').value='';
+  document.getElementById('analyze-btn').disabled=true;
+  document.getElementById('result-section').style.display='none';
 }
 
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('dropzone').classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (file) loadFile(file);
-}
-
-function loadFile(file) {
-  const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/bmp'];
-  if (!validTypes.includes(file.type)) {
-    showError('Please upload a JPG, PNG, or WEBP image.');
-    return;
-  }
-  if (file.size > 10 * 1024 * 1024) {
-    showError('File too large. Maximum size is 10MB.');
-    return;
-  }
-
-  selectedFile = file;
-  hideError();
-  hideResults();
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    document.getElementById('preview-img').src = e.target.result;
-    document.getElementById('preview-area').style.display = 'block';
-  };
-  reader.readAsDataURL(file);
-
-  document.getElementById('analyze-btn').disabled = false;
-}
-
-function clearImage() {
-  selectedFile = null;
-  document.getElementById('preview-area').style.display = 'none';
-  document.getElementById('preview-img').src = '';
-  document.getElementById('fileInput').value = '';
-  document.getElementById('analyze-btn').disabled = true;
-  hideResults();
-  hideError();
-}
-
-// =============================================
-// ANALYSIS
-// =============================================
-async function analyzeImage() {
-  if (!selectedFile) return;
-
+// ==================== ANALYZE ====================
+async function analyzeImage(){
+  if(!window._file)return;
   setLoading(true);
-  hideResults();
-  hideError();
-
-  const formData = new FormData();
-  formData.append('image', selectedFile);
-  formData.append('lang', currentLang);
-
-  try {
-    const response = await fetch('/predict', {
-      method: 'POST',
-      body: formData
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || data.error) {
-      throw new Error(data.error || 'Prediction failed. Please try again.');
-    }
-
+  showProc();
+  const fd=new FormData();
+  fd.append('image',window._file);
+  fd.append('lang',currentLang);
+  try{
+    const res=await fetch('/predict',{method:'POST',body:fd});
+    const data=await res.json();
+    hideProc();
+    if(data.error){showErr(data.error);return;}
+    if(!data.success){showErr(data.error||'Analysis failed.');return;}
     displayResults(data);
-
-  } catch (err) {
-    showError(err.message || 'An unexpected error occurred.');
-  } finally {
-    setLoading(false);
-  }
+    saveToHistoryAuto(data);
+  }catch(e){
+    hideProc();
+    showErr('Connection error. Make sure Flask server is running.');
+  }finally{setLoading(false);}
 }
 
-// =============================================
-// DISPLAY RESULTS
-// =============================================
-function displayResults(data) {
-  const p = data.prediction;
+function showProc(){
+  document.getElementById('proc-overlay').classList.add('show');
+  let i=0;const s=['ps1','ps2','ps3'];
+  const iv=setInterval(()=>{if(i<s.length){document.getElementById(s[i++]).classList.add('show');}else{clearInterval(iv);}},700);
+}
+function hideProc(){
+  document.getElementById('proc-overlay').classList.remove('show');
+  ['ps1','ps2','ps3'].forEach(s=>document.getElementById(s).classList.remove('show'));
+}
 
-  // Disease name & severity
-  document.getElementById('disease-name').textContent = p.display_name;
-
-  const badge = document.getElementById('severity-badge');
-  badge.style.background = p.severity_color + '20';
-  badge.style.color = p.severity_color;
-  badge.style.border = `1px solid ${p.severity_color}40`;
-  document.getElementById('severity-text').textContent = p.severity;
-
-  // Confidence bar
-  document.getElementById('confidence-pct').textContent = p.confidence.toFixed(1) + '%';
-  const bar = document.getElementById('confidence-bar');
-  bar.style.width = '0';
-  setTimeout(() => { bar.style.width = p.confidence + '%'; }, 100);
-
-  // Description
-  document.getElementById('disease-desc').textContent = p.description;
-
-  // Treatment list
-  const ul = document.getElementById('treatment-list');
-  ul.innerHTML = '';
-  p.treatment.forEach((item, i) => {
-    const li = document.createElement('li');
-    li.className = 'treatment-item';
-    li.style.animationDelay = `${i * 0.08}s`;
-    li.innerHTML = `<span class="treatment-num">${i + 1}</span><span>${item}</span>`;
+function displayResults(data){
+  const p=data.prediction;
+  document.getElementById('dis-name').textContent=p.display_name;
+  document.getElementById('conf-pct').textContent=p.confidence.toFixed(1)+'%';
+  document.getElementById('dis-desc').textContent=p.description;
+  const badge=document.getElementById('sev-badge');
+  badge.textContent=p.severity;
+  badge.style.background=p.severity_color+'22';
+  badge.style.color=p.severity_color;
+  badge.style.border='1px solid '+p.severity_color+'44';
+  const fill=document.getElementById('conf-fill');
+  fill.style.width='0';
+  setTimeout(()=>{fill.style.width=p.confidence+'%';},100);
+  const ul=document.getElementById('treat-list');
+  ul.innerHTML='';
+  p.treatment.forEach((t,i)=>{
+    const li=document.createElement('li');
+    li.className='treat-item';
+    li.style.animationDelay=(i*0.08)+'s';
+    li.innerHTML='<span class="t-num">'+(i+1)+'</span><span>'+t+'</span>';
     ul.appendChild(li);
   });
-
-  // Prevention
-  if (p.prevention) {
-    document.getElementById('prevention-text').textContent = p.prevention;
-    document.getElementById('prevention-box').style.display = 'block';
-  } else {
-    document.getElementById('prevention-box').style.display = 'none';
-  }
-
-  // Alternatives
-  const altCard = document.getElementById('alt-card');
-  if (data.alternatives && data.alternatives.length > 0) {
-    const grid = document.getElementById('alt-grid');
-    grid.innerHTML = '';
-    data.alternatives.forEach(alt => {
-      const div = document.createElement('div');
-      div.className = 'alt-item';
-      div.innerHTML = `
-        <div class="alt-name">${alt.name}</div>
-        <div class="alt-conf">${alt.confidence.toFixed(1)}% confidence</div>
-      `;
-      grid.appendChild(div);
+  if(p.prevention){document.getElementById('prev-txt').textContent=p.prevention;document.getElementById('prev-box').style.display='block';}
+  else{document.getElementById('prev-box').style.display='none';}
+  if(data.alternatives&&data.alternatives.length>0){
+    const g=document.getElementById('alt-grid');
+    g.innerHTML='';
+    data.alternatives.forEach(a=>{
+      const d=document.createElement('div');
+      d.className='alt-item';
+      d.innerHTML='<div class="alt-name">'+a.name+'</div><div class="alt-conf">'+a.confidence.toFixed(1)+'% confidence</div>';
+      g.appendChild(d);
     });
-    altCard.style.display = 'block';
-  } else {
-    altCard.style.display = 'none';
+    document.getElementById('alt-card').style.display='block';
   }
-
-  document.getElementById('result-section').style.display = 'block';
-  document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('result-section').style.display='block';
+  document.getElementById('result-section').scrollIntoView({behavior:'smooth'});
 }
 
-// =============================================
-// UI HELPERS
-// =============================================
-function setLoading(loading) {
-  const btn    = document.getElementById('analyze-btn');
-  const spinner = document.getElementById('spinner');
-  const btnText = document.getElementById('btn-text');
+function newAnalysis(){clearImage();document.getElementById('result-section').style.display='none';window.scrollTo({top:0,behavior:'smooth'});}
+function saveNow(){alert('Saved to history! ✅');}
+function setLoading(l){document.getElementById('analyze-btn').disabled=l;document.getElementById('spinner').style.display=l?'block':'none';}
+function showErr(m){document.getElementById('err-msg').textContent=m;document.getElementById('err-box').style.display='block';}
+function hideErr(){document.getElementById('err-box').style.display='none';}
 
-  btn.disabled = loading;
-  spinner.style.display = loading ? 'block' : 'none';
-  btnText.textContent = loading ? t[currentLang].btnLoading : t[currentLang].btnText;
+// ==================== HISTORY ====================
+function saveToHistoryAuto(data){
+  const h=JSON.parse(localStorage.getItem('plantHistory')||'[]');
+  h.unshift({date:new Date().toISOString(),plant:selectedPlant||'unknown',disease:data.prediction.display_name,confidence:data.prediction.confidence,severity:data.prediction.severity,color:data.prediction.severity_color});
+  localStorage.setItem('plantHistory',JSON.stringify(h.slice(0,20)));
 }
 
-function showError(msg) {
-  const box = document.getElementById('error-box');
-  document.getElementById('error-msg').textContent = msg;
+function loadHistory(){
+  const h=JSON.parse(localStorage.getItem('plantHistory')||'[]');
+  const c=document.getElementById('hist-container');
+  if(h.length===0){
+    c.innerHTML='<div class="empty-state"><div class="empty-icon">🌱</div><div class="empty-title">No scans yet</div><div class="empty-sub">Your diagnosis history will appear here</div><button class="btn-primary" onclick="goTo(\'select\')">🔬 Start Diagnosis</button></div>';
+    return;
+  }
+  const em={potato:'🥔',tomato:'🍅',pepper:'🌶',unknown:'🌿'};
+  c.innerHTML=h.map(i=>{
+    const d=new Date(i.date);
+    const ds=d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+' · '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    return`<div class="hist-item"><div class="hist-plant">${em[i.plant]||'🌿'}</div><div class="hist-info"><div class="hist-disease">${i.disease}</div><div class="hist-meta">📅 ${ds} · ${i.confidence.toFixed(1)}% confidence</div></div><span class="hist-badge" style="background:${i.color}22;color:${i.color};border:1px solid ${i.color}44;">${i.severity}</span></div>`;
+  }).join('');
+}
+
+function clearHistory(){
+  if(confirm('Clear all history?')){localStorage.removeItem('plantHistory');loadHistory();}
+}
+
+// ==================== LANGUAGE ====================
+function setLang(lang){
+  currentLang=lang;
+  document.getElementById('btn-en').classList.toggle('active',lang==='en');
+  document.getElementById('btn-hi').classList.toggle('active',lang==='hi');
+  document.querySelectorAll('[data-en]').forEach(el=>{
+    const txt=el.getAttribute('data-'+lang)||el.getAttribute('data-en');
+    if(el.tagName==='H1'&&el.innerHTML.includes('<span')){el.innerHTML=txt;}
+    else{el.textContent=txt;}
+  });
+}
+
+// ==================== SCROLL ====================
+window.addEventListener('scroll',()=>{
+  document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>20);
+});
+
+// ==================== ANIMATIONS ====================
+const obs=new IntersectionObserver((entries)=>{
+  entries.forEach((e,i)=>{
+    if(e.isIntersecting){e.target.style.animationDelay=(i*0.1)+'s';e.target.classList.add('fade-up');obs.unobserve(e.target);}
+  });
+},{threshold:0.1});
+document.querySelectorAll('.plant-card,.feature-card,.step-card,.sel-card,.team-card,.tech-card,.stat-card').forEach(el=>obs.observe(el));
+
+// Set initial nav active
+document.getElementById('nav-home').classList.add('active');
+// ==================== TRACKER LOGIC ====================
+// Add this inside the <script> tag in index.html
+
+let beforeFile = null;
+let afterFile = null;
+let beforeData = null;
+let afterData = null;
+
+// File loaders
+function loadBeforeFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  beforeFile = file;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('before-img').src = ev.target.result;
+    document.getElementById('before-preview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+  checkCompareReady();
+}
+
+function loadAfterFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  afterFile = file;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('after-img').src = ev.target.result;
+    document.getElementById('after-preview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+  checkCompareReady();
+}
+
+function clearBefore() {
+  beforeFile = null; beforeData = null;
+  document.getElementById('before-preview').style.display = 'none';
+  document.getElementById('before-result').style.display = 'none';
+  document.getElementById('before-input').value = '';
+  document.getElementById('tracker-result').style.display = 'none';
+  checkCompareReady();
+}
+
+function clearAfter() {
+  afterFile = null; afterData = null;
+  document.getElementById('after-preview').style.display = 'none';
+  document.getElementById('after-result').style.display = 'none';
+  document.getElementById('after-input').value = '';
+  document.getElementById('tracker-result').style.display = 'none';
+  checkCompareReady();
+}
+
+function checkCompareReady() {
+  const btn = document.getElementById('compare-btn');
+  const ready = beforeFile && afterFile;
+  btn.disabled = !ready;
+  btn.style.opacity = ready ? '1' : '0.45';
+  btn.style.cursor = ready ? 'pointer' : 'not-allowed';
+}
+
+// Main comparison function
+async function compareResults() {
+  const btn = document.getElementById('compare-btn');
+  btn.disabled = true;
+  btn.textContent = '🔄 Analyzing...';
+  document.getElementById('tracker-err').style.display = 'none';
+  document.getElementById('tracker-result').style.display = 'none';
+
+  try {
+    // Analyze BEFORE image
+    const fd1 = new FormData();
+    fd1.append('image', beforeFile);
+    fd1.append('lang', currentLang);
+    const res1 = await fetch('/predict', { method: 'POST', body: fd1 });
+    beforeData = await res1.json();
+
+    // Analyze AFTER image
+    const fd2 = new FormData();
+    fd2.append('image', afterFile);
+    fd2.append('lang', currentLang);
+    const res2 = await fetch('/predict', { method: 'POST', body: fd2 });
+    afterData = await res2.json();
+
+    // Show individual results
+    showBeforeResult(beforeData);
+    showAfterResult(afterData);
+
+    // Compare and show progress
+    showComparison(beforeData, afterData);
+
+  } catch (e) {
+    showTrackerErr('Connection error. Make sure Flask server is running.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🔬 <span>Compare & Analyze Progress</span>';
+    checkCompareReady();
+  }
+}
+
+function showBeforeResult(data) {
+  const box = document.getElementById('before-result');
+  if (data.success) {
+    document.getElementById('before-disease').textContent = data.prediction.display_name;
+    document.getElementById('before-conf').textContent = '⚠ Disease confidence: ' + data.prediction.confidence.toFixed(1) + '%';
+  } else {
+    document.getElementById('before-disease').textContent = 'Low confidence detection';
+    document.getElementById('before-conf').textContent = data.error || '';
+  }
   box.style.display = 'block';
 }
 
-function hideError() {
-  document.getElementById('error-box').style.display = 'none';
+function showAfterResult(data) {
+  const box = document.getElementById('after-result');
+  if (data.success) {
+    document.getElementById('after-disease').textContent = data.prediction.display_name;
+    document.getElementById('after-conf').textContent = '✅ Disease confidence: ' + data.prediction.confidence.toFixed(1) + '%';
+  } else {
+    document.getElementById('after-disease').textContent = 'Low confidence — plant looks healthier!';
+    document.getElementById('after-conf').textContent = 'Disease not confidently detected';
+  }
+  box.style.display = 'block';
 }
 
-function hideResults() {
-  document.getElementById('result-section').style.display = 'none';
+function showComparison(before, after) {
+  // Get confidence values
+  const beforeConf = before.success ? before.prediction.confidence : 0;
+  const afterConf  = after.success  ? after.prediction.confidence  : 15; // low = healthy
+  const improvement = beforeConf - afterConf;
+  const improvePct = Math.round(improvement);
+
+  // Animate bars
+  setTimeout(() => {
+    document.getElementById('before-bar').style.width = beforeConf + '%';
+    document.getElementById('after-bar').style.width  = afterConf + '%';
+    document.getElementById('before-pct').textContent = beforeConf.toFixed(1) + '%';
+    document.getElementById('after-pct').textContent  = afterConf.toFixed(1) + '%';
+  }, 100);
+
+  // Improvement score
+  const scoreEl = document.getElementById('improvement-score');
+  scoreEl.textContent = (improvePct >= 0 ? '+' : '') + improvePct + '%';
+  scoreEl.style.color = improvePct >= 0 ? 'var(--g600)' : '#dc2626';
+
+  // Recovery status
+  let icon, title, sub, recTitle, recText, recBg;
+
+  if (improvement >= 50) {
+    icon = '🌟'; title = 'Excellent Recovery!';
+    sub = 'Treatment is working very well. Disease significantly reduced.';
+    recTitle = 'Continue current treatment';
+    recText = 'Your treatment is highly effective. Continue for 3-5 more days as a precaution. Monitor weekly.';
+    recBg = 'background:var(--g50);border:1px solid var(--g100);';
+  } else if (improvement >= 25) {
+    icon = '🌱'; title = 'Good Progress!';
+    sub = 'Treatment is showing positive results. Keep it up!';
+    recTitle = 'Maintain treatment schedule';
+    recText = 'Good improvement! Continue the treatment as prescribed. Upload again in 5-7 days to track further progress.';
+    recBg = 'background:#f0fdf4;border:1px solid #86efac;';
+  } else if (improvement >= 0) {
+    icon = '🔄'; title = 'Slight Improvement';
+    sub = 'Some improvement detected but treatment may need adjustment.';
+    recTitle = 'Consider adjusting treatment';
+    recText = 'Minor improvement seen. Check if you are applying treatment correctly. Increase spray frequency if needed. Consult an agricultural expert.';
+    recBg = 'background:#fffbeb;border:1px solid #fcd34d;';
+  } else {
+    icon = '⚠️'; title = 'Disease Worsening!';
+    sub = 'Disease confidence has increased. Immediate action needed.';
+    recTitle = 'Change treatment immediately';
+    recText = 'Disease is progressing despite treatment. Stop current treatment. Try a different fungicide. Consult a local agricultural expert as soon as possible.';
+    recBg = 'background:#fef2f2;border:1px solid #fca5a5;';
+  }
+
+  document.getElementById('recovery-icon').textContent = icon;
+  document.getElementById('recovery-title').textContent = title;
+  document.getElementById('recovery-sub').textContent = sub;
+  document.getElementById('rec-icon').textContent = '💡';
+  document.getElementById('rec-title').textContent = recTitle;
+  document.getElementById('rec-text').textContent = recText;
+  document.getElementById('recommendation-box').style.cssText += recBg;
+
+  // Timeline
+  buildTimeline(before, after, improvement);
+
+  document.getElementById('tracker-result').style.display = 'block';
+  document.getElementById('tracker-result').scrollIntoView({ behavior: 'smooth' });
 }
+
+function buildTimeline(before, after, improvement) {
+  const container = document.getElementById('timeline-container');
+  const beforeDisease = before.success ? before.prediction.display_name : 'Low confidence';
+  const afterDisease  = after.success  ? after.prediction.display_name  : 'Improving / Healthy';
+  const beforeConf = before.success ? before.prediction.confidence.toFixed(1) : '< 40';
+  const afterConf  = after.success  ? after.prediction.confidence.toFixed(1)  : '< 40';
+
+  const steps = [
+    { day: 'Day 0', label: 'Disease Detected', detail: beforeDisease + ' (' + beforeConf + '% confidence)', color: '#dc2626', icon: '🍂' },
+    { day: 'Day 1–3', label: 'Treatment Started', detail: 'Applied recommended fungicide / bactericide', color: '#f97316', icon: '💊' },
+    { day: 'Day 4–6', label: 'Treatment Continued', detail: 'Second spray applied as per schedule', color: '#eab308', icon: '🔄' },
+    { day: 'Day 7+', label: 'Progress Check', detail: afterDisease + ' (' + afterConf + '% confidence)', color: improvement >= 25 ? '#16a34a' : '#dc2626', icon: improvement >= 25 ? '🌿' : '⚠️' },
+  ];
+
+  container.innerHTML = steps.map((s, i) => `
+    <div style="display:flex;gap:16px;padding:16px 0;${i < steps.length - 1 ? 'border-bottom:1px solid var(--g50);' : ''}">
+      <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
+        <div style="width:36px;height:36px;background:${s.color}22;border:2px solid ${s.color};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;">${s.icon}</div>
+        ${i < steps.length - 1 ? `<div style="width:2px;flex:1;background:var(--g100);margin:4px 0;min-height:20px;"></div>` : ''}
+      </div>
+      <div style="flex:1;padding-top:4px;">
+        <p style="font-size:0.75rem;font-weight:600;color:${s.color};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;">${s.day}</p>
+        <p style="font-weight:600;color:var(--td);font-size:0.9rem;margin-bottom:2px;">${s.label}</p>
+        <p style="font-size:0.82rem;color:var(--tl);">${s.detail}</p>
+      </div>
+    </div>
+  `).join('');
+}
+
+function showTrackerErr(msg) {
+  document.getElementById('tracker-err-msg').textContent = msg;
+  document.getElementById('tracker-err').style.display = 'block';
+}
+
 </script>
 </body>
 </html>
