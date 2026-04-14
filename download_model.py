@@ -8,7 +8,7 @@ import gdown
 
 MODEL_PATH = "model/model.onnx"
 # Apna Google Drive File ID yahan daalo:
-FILE_ID = "YOUR_GOOGLE_DRIVE_FILE_ID_HERE"
+FILE_ID = "1QVitRkwVdbgpK3BNUPme3t8nboSyrq-O"
 
 def download_model():
     # Model folder banao agar nahi hai
