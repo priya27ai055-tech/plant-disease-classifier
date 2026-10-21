@@ -7,7 +7,7 @@
 ![Accuracy](https://img.shields.io/badge/Accuracy-97.72%25-brightgreen)
 
 ---
-
+## PROJECT LIVE LINK : https://plant-disease-classifier-9mw0.onrender.com/
 ## 📌 Project Overview
 
 A deep learning web application that detects plant diseases from leaf images using **MobileNetV2 Transfer Learning**. Upload a leaf photo and get instant diagnosis with treatment recommendations in **English and Hindi**.
